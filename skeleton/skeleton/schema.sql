@@ -64,6 +64,38 @@ CREATE TABLE Comments (
 
 CREATE TABLE Tags(tag_name VARCHAR(50) PRIMARY KEY);
 
+CREATE TABLE Friends_list (
+	owner_id int4, 
+	friend_id int4, 
+    PRIMARY KEY (owner_id, friend_id), 
+    FOREIGN KEY (owner_id) REFERENCES Registered_Users(user_id) 
+		ON DELETE CASCADE, 
+	FOREIGN KEY (friend_id) REFERENCES Registered_Users(user_id) 
+		ON DELETE CASCADE
+);
+
+CREATE TABLE user_likes_photo (
+	user_id  int4, 
+    anonymous_id int4, 
+    photo_id  int4, 
+    PRIMARY KEY (user_id, photo_id), 
+    FOREIGN KEY (user_id) REFERENCES Registered_Users(user_id) 
+		ON DELETE CASCADE, 
+	FOREIGN KEY (anonymous_id) REFERENCES Anonymous_Users(a_user_id) 
+		ON DELETE CASCADE, 
+	FOREIGN KEY (photo_id) REFERENCES Photos(photo_id) 
+		ON DELETE CASCADE, 
+	CHECK (register_or_not)
+);
+
+CREATE TABLE Photo_has_tags (
+	tag_name  VARCHAR(50), 
+    photo_id  int4, 
+    PRIMARY KEY (tag_name, photo_id),
+    FOREIGN KEY (photo_id) REFERENCES Photo(photo_id) 
+		ON DELETE CASCADE, 
+	FOREIGN KEY (tag_name) REFERENCES tags(tag_name) 
+		ON DELETE CASCADE); 
 
 INSERT INTO Registered_Users (email, password) VALUES ('test@bu.edu', 'test');
 INSERT INTO Registered_Users (email, password) VALUES ('test1@bu.edu', 'test');
