@@ -1,32 +1,53 @@
-<!-- author ben lawson (balawson@bu.edu) -->
+<!-- author ben lawson (balawson@bu.edu), Jiasheng Qiu (jiaq9@bu.edu) -->
 <!doctype html>
-{% if message %}
-  <h4>{{message}}!</h4>
-{% endif %}
-<title>Photoshare</title>
-{% if name %}
-  <h1>Hello {{ name }}!</h1>
-{% endif %}
+<html lang="en">
 
-{% if photos %}
-<h2>Here are your photos</h2>
-    <ul>
+<head>
+  {% if message %}
+  <h1>{{message}}!</h1>
+  {% endif %}
+  <title>Photoshare</title>
+  {% if name %}
+  <h1>Hello {{ name }}!</h1>
+  {% endif %}
+
+  {% if photos %}
+  <h2>Here are your photos</h2>
+  <ul>
     {% for photo in photos %}
 
-        <li>{{photo[2]}}<br>
-        <img src='data:image/jpg;base64, {{ base64.b64encode(photo[0]).decode("ascii") }}'/></li>
+    <li>{{photo[2]}}<br>
+      <img src='data:image/jpg;base64, {{ base64.b64encode(photo[0]).decode("ascii") }}' />
+    </li>
     {% endfor %}
-    </ul>
-{% endif %}
+  </ul>
+  {% endif %}
 
-{% if message is none %}
+  {% if message is none %}
   <p>You should <a href='/login'>login!</a></p>
-{% else %}
+  {% else %}
   <p> Go to <a href='/profile'>profile?</a></p>
-{% endif %}
+  {% endif %}
 
-<ul>
-<li><a href='/upload'>Upload a photo</a> </li>
-<li><a href='/logout'>Logout</a></li>
-<li><a href='/'>Home</a></li>
-</ul>
+  <ul>
+    <li><a href='/upload'>Upload a photo</a> </li>
+    <li><a href='/noregister'>noregister</a></li>
+    <li><a href='/logout'>Logout</a></li>
+    <li><a href='/home'>Home</a></li>
+
+  </ul>
+
+</head>
+
+
+  <!-- dark mode for the web page -->
+  <style>
+    body {
+        /* making the background to the specific color in hex */
+        background-color: #212121;
+        color: White;
+
+    }
+</style>
+
+</html>

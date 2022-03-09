@@ -140,6 +140,13 @@ def register_user():
 		print("couldn't find all tokens")
 		return flask.redirect(flask.url_for('register'))
 
+@app.route('/noregister')
+def noregister_user():
+	return render_template('noregister.html')
+
+
+
+
 def getUsersPhotos(uid):
 	cursor = conn.cursor()
 	cursor.execute("SELECT imgdata, photo_id, caption FROM Photos WHERE user_id = '{0}'".format(uid))
@@ -187,6 +194,12 @@ def upload_file():
 	else:
 		return render_template('upload.html')
 #end photo uploading code
+
+
+@app.route("/home")
+def home_page():
+	return render_template('home.html')
+
 
 
 #default page
