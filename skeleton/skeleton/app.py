@@ -9,6 +9,7 @@
 # see links for further understanding
 ###################################################
 
+from unittest import result
 import flask
 from flask import Flask, Response, request, render_template, redirect, url_for
 from flaskext.mysql import MySQL
@@ -16,6 +17,8 @@ import flask_login
 
 #for image uploading
 import os, base64
+
+import io
 
 mysql = MySQL()
 app = Flask(__name__)
@@ -196,15 +199,31 @@ def upload_file():
 #end photo uploading code
 
 
-@app.route("/home")
+@app.route("/home", methods=['GET'])
 def home_page():
-	return render_template('home.html')
+	themes = []
+	cursor = conn.cursor()
+	# cursor.execute('''SELECT ''')
+	# cursor = conn.cursor()
+	cursor.execute("SELECT photo_id, user_id, album_id, imgdata, caption FROM Photos")
+	t = cursor.fetchall()
+	for i in range(len(t)):
+		print(t[i][2])
+		themes.append({})
+		
+		themes[i]["photo_id"] = t[i][0]
+		themes[i]["user_id"] = t[i][1]
+		themes[i]["album_id"] = t[i][2]
+		themes[i]["imgdata"] = t[i][3]
+		themes[i]["caption"] = t[i][4]
 
+	return render_template('home.html', result = t,base64=base64)
 
 
 #default page
 @app.route("/", methods=['GET'])
 def hello():
+
 	return render_template('hello.html', message='Welecome to Photoshare')
 
 

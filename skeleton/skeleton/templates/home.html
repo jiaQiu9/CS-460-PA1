@@ -48,9 +48,26 @@
 
     </ul> 
   </div>
+  <div>
+
+
+  </div>
 </nav>
       <br>
     <h1>Welcom to Photoshare</h1>
+
+    <ul>
+      {% for photo in result %}
+  
+      <li>Photo_id: {{photo[0]}}<br>
+        album_id:{{photo[2]}}<br>
+        caption: {{photo[4]}} <br>
+        <img src='data:image/jpg;base64, {{ base64.b64encode(photo[3]).decode("ascii") }}' />
+        <br>
+        
+      </li>
+      {% endfor %}
+    </ul>
 
   </body>
 
