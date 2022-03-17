@@ -10,7 +10,7 @@
         integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
     <!-- name of the tab -->
     
-    <title>Create an account!</title>
+    <title>Freinds_list</title>
 
 
 </head>
@@ -27,20 +27,12 @@
             <li class="nav-item active">
                 <a class="nav-link" href="/home">Home <span class="sr-only">(current)</span></a>
             </li>
-
+            
         </ul>
         <ul class="navbar-nav">
-
-            <li class="nav-item">
-                <a class="nav-link" href="/login">Login</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="/register">Register</a>
-            </li>
             <li class="nav-item">
                 <a class="nav-link" href="/logout">Logout</a>
             </li>
-
 
         </ul>
     </div>
@@ -48,23 +40,20 @@
 
 
 
-{%if not supress%}
-<h1> Email already in use! Use another one or <a href="/login">login</a></h1>
-{% endif %}
-
 <body>
-    <div class="cetner">
-        <h1>Enter your information below</h1>
-    </div>
-    <div id="content" class="center">
-        <form method="post" action="{{ url_for('register_user') }}" class="center">
-            <label for="email">Enter your email:</label>
-            <input type="email" name="email" /><br />
-            <label for="password">Enter password:</label>
-            <input type="password" name="password" /><br />
-            <input type="submit" class="center"/>
-        </form>
-    </div>
+
+    <h1>Friends list of {{name}} </h1>
+    <br> 
+    {% if list %}
+    <ul>
+        {% for friend in list %}
+            <li> {{friend}}</li>
+
+        {% endfor %}
+    </ul>
+    {% else %}
+    <h3> No friends in your friends list.</h3>
+    {% endif %}
 </body>
 
 
