@@ -30,9 +30,9 @@ CREATE TABLE Albums (
 CREATE TABLE Photos
 (
   photo_id int4 AUTO_INCREMENT PRIMARY KEY,
-  user_id int4,
-  album_id int4,
-  imgdata longblob,
+  user_id int4 NOT NULL,
+  album_id int4 NOT NULL,
+  imgdata longblob NOT NULL,
   caption VARCHAR(255),
   INDEX upid_idx (user_id),
   FOREIGN KEY (user_id) REFERENCES Registered_Users(user_id) 

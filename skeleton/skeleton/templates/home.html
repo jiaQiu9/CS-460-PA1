@@ -2,82 +2,97 @@
 <!doctype html>
 <!-- specify the language is english -->
 <html lang="en">
-  <head>
-    <!-- Required meta tags -->
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
-    <!-- Bootstrap CSS, make the page look better and formated -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-    <!-- name of the tab -->
-    <title>Home Page</title>
-    
+<head>
+  <!-- Required meta tags -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
-  </head>
-  <body>
-<!-- navigation bar -->
-<nav class="navbar navbar-expand-md navbar-dark bg-dark">
-  <!-- <a class="navbar-brand" href="#">Home</a> -->
-  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav">
-    <span class="navbar-toggler-icon"></span>
-  </button>
-  <div class="collapse navbar-collapse" id="navbarNav">
+  <!-- Bootstrap CSS, make the page look better and formated -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css"
+    integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+  <!-- name of the tab -->
+  <title>Home Page</title>
+
+
+</head>
+
+<body>
+  <!-- navigation bar -->
+  <nav class="navbar navbar-expand-md navbar-dark bg-dark">
+    <!-- <a class="navbar-brand" href="#">Home</a> -->
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
 
       <!-- navigation bar options  -->
-    <ul class="navbar-nav mr-auto">
+      <ul class="navbar-nav mr-auto">
         <li class="nav-item active">
-            <a class="nav-link" href="/home">Home <span class="sr-only">(current)</span></a>
+          <a class="nav-link" href="/home">Home <span class="sr-only">(current)</span></a>
         </li>
-        <!-- <li class="nav-item">
-            <a class="nav-link" href="#">Market</a>
-        </li> -->
-    </ul>
-    <ul class="navbar-nav">
-                        <li class="nav-item">
+
+      </ul>
+      <ul class="navbar-nav">
+        <li class="nav-item">
+          <a class="nav-link" href="/friendslist">Friends List</a>
+        </li>
+        <li class="nav-item">
           <a class="nav-link" href="/upload">Upload Photo</a>
-      </li>
-        <li class="nav-item">
-            <a class="nav-link" href="/login">Login</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link" href="/register">Register</a>
+          <a class="nav-link" href="/album_create">Create_album</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/add_friends">Add Friends</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/login">Login</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/add_freinds">add friends</a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="/register">Register</a>
         </li>
         <li class="nav-item">
           <a class="nav-link" href="/logout">Logout</a>
-      </li>
+        </li>
 
-    </ul> 
-  </div>
-  <div>
+      </ul>
+    </div>
+    <div>
 
 
-  </div>
-</nav>
+    </div>
+  </nav>
+  <br>
+  <h1>Welcom to Photoshare</h1>
+
+  <ul>
+    {% for photo in result %}
+
+    <li>Photo_id: {{photo[0]}}<br>
+      album_name:{{photo[5]}}<br>
+      caption: {{photo[4]}} <br>
+      <img src='data:image/jpg;base64, {{ base64.b64encode(photo[3]).decode("ascii") }}' width="50%" height="50%" />
       <br>
-    <h1>Welcom to Photoshare</h1>
 
-    <ul>
-      {% for photo in result %}
-  
-      <li>Photo_id: {{photo[0]}}<br>
-        album_id:{{photo[2]}}<br>
-        caption: {{photo[4]}} <br>
-        <img src='data:image/jpg;base64, {{ base64.b64encode(photo[3]).decode("ascii") }}' />
-        <br>
-        
-      </li>
-      {% endfor %}
-    </ul>
+    </li>
+    {% endfor %}
+  </ul>
 
-  </body>
+</body>
 
-  <!-- dark mode for the web page -->
-  <style>
-      body {
-          /* making the background to the specific color in hex */
-          background-color: #212121;
-          color: White;
+<!-- dark mode for the web page -->
+<style>
+  body {
+    /* making the background to the specific color in hex */
+    background-color: #212121;
+    color: White;
 
-      }
-  </style>
+  }
+</style>
+
 </html>
