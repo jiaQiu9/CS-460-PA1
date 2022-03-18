@@ -12,7 +12,7 @@
 from unittest import result
 import flask
 from flask import Flask, Response, request, render_template, redirect, url_for
-from flaskext.mysql import MySQL
+from flask.ext.mysql import MySQL
 import flask_login
 import datetime
 #for image uploading
