@@ -20,7 +20,6 @@ import os, base64
 
 import io
 
-from sympy import Q
 
 mysql = MySQL()
 app = Flask(__name__)
