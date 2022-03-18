@@ -314,6 +314,9 @@ def add_friends():
 				print("friend list ", friend_id, uid)
 				cursor.execute('''INSERT INTO friends_list (owner_id, friend_id) VALUES (%s, %s )''',(uid, friend_id))
 				conn.commit()
+				return render_template('friendslist.html',name=flask_login.current_user.id)
+		else:
+			return render_template('add_friend.html',name=flask_login.current_user.id, message="The user is not in the system.")
 	return render_template('add_friend.html',name=flask_login.current_user.id)
 
 
