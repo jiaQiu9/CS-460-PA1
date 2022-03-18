@@ -131,7 +131,7 @@ def register_user():
 		print("couldn't find all tokens") #this prints to shell, end users will not see this (all print statements go to shell)
 		return flask.redirect(flask.url_for('register'))
 	cursor = conn.cursor()
-	test =  isEmailUnique(email)
+	test = isEmailUnique(email)
 	if test:
 		print(cursor.execute("INSERT INTO Registered_Users (email, passcode) VALUES ('{0}', '{1}')".format(email, password)))
 		conn.commit()
@@ -245,7 +245,7 @@ def upload_file():
 		if (cursor.rowcount!=0):
 			print(uid,  album_result,  caption)
 			cursor.execute('''INSERT INTO Photos (user_id, album_id,imgdata, caption) VALUES (%s, %s, %s, %s )''' ,(uid,  album_result,photo_data,  caption))
-			cursor.execute("update Registered_Users as R set contribution = contribution + 1 where R.uid=uid")
+			cursor.execute("UPDATE Registered_Users AS R SET contribution = contribution + 1 WHERE R.uid=uid")
 			conn.commit()
 			return render_template('hello.html', name=flask_login.current_user.id, message='Photo uploaded!', photos=getUsersPhotos(uid),base64=base64)
 			#The method is GET so we return a  HTML form to upload the a photo.
