@@ -240,7 +240,7 @@ def upload_file():
 		caption = request.form.get('caption')
 		album_name= request.form.get('album')
 		photo_data =imgfile.read()
-		tag_name = request.form.get('tag_name')
+		tag_name = request.form.get('tag_name') 
 		cursor = conn.cursor()
 		cursor.execute("SELECT album_id FROM  Albums WHERE album_name=%s",(album_name))
 		album_result=cursor.fetchall()
