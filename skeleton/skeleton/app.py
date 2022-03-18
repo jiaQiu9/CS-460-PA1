@@ -254,6 +254,7 @@ def upload_file():
 
 	else:
 		return render_template('upload.html')
+	cursor.execute("SELECT album_id FROM  Albums WHERE album_name=%s",(album_name))
 #end photo uploading code
 
 
@@ -300,6 +301,19 @@ def list_friends():
 def add_friends():
 	
 	return render_template('add_friend.html',name=flask_login.current_user.id)
+
+
+
+@app.route("/top_contributors", methods=[])
+@flask_login.login_required
+def show_top10():
+	cursor.execute("SELECT email from top10")
+	top10 = cursor.fetchall()
+	if top10 != ():
+		return render_template('top_contributors.html', list=top10)
+	
+	return render_template('top_contributors.html')
+
 
 
 
