@@ -240,6 +240,7 @@ def upload_file():
 		caption = request.form.get('caption')
 		album_name= request.form.get('album')
 		photo_data =imgfile.read()
+		tag_name = request.form.get('tag_name')
 		cursor = conn.cursor()
 		cursor.execute("SELECT album_id FROM  Albums WHERE album_name=%s",(album_name))
 		album_result=cursor.fetchall()
@@ -268,7 +269,7 @@ def home_page():
 		themes.append({})
 		
 		themes[i][0] = t[i][0] #photo id
-		themes[i][1] = t[i][1] # user if
+		themes[i][1] = t[i][1] # user id
 		themes[i][2] = t[i][2] # album_id
 		themes[i][3] = t[i][3] #img date
 		themes[i][4] = t[i][4] # caption
@@ -293,7 +294,7 @@ def list_friends():
 		cursor.execute("SELECT email FROM registered_users where user_id IN %s",friends_list)
 		friends_username=cursor.fetchall()
 		
-		if friends_list != ():
+		if friends_username != ():
 			return render_template('friendslist.html', list=friends_username, name=flask_login.current_user.id)
 	
 	return render_template('friendslist.html', name=flask_login.current_user.id)
