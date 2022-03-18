@@ -20,7 +20,6 @@ import os, base64
 
 import io
 
-from sympy import Q
 
 mysql = MySQL()
 app = Flask(__name__)
@@ -246,6 +245,7 @@ def upload_file():
 		if (cursor.rowcount!=0):
 			print(uid,  album_result,  caption)
 			cursor.execute('''INSERT INTO Photos (user_id, album_id,imgdata, caption) VALUES (%s, %s, %s, %s )''' ,(uid,  album_result,photo_data,  caption))
+			cursor.execute("update Registered_Users as R set contribution = contribution + 1 where R.uid=uid")
 			conn.commit()
 			return render_template('hello.html', name=flask_login.current_user.id, message='Photo uploaded!', photos=getUsersPhotos(uid),base64=base64)
 			#The method is GET so we return a  HTML form to upload the a photo.
@@ -307,7 +307,7 @@ def add_friends():
 @app.route("/top_contributors", methods=['POST', 'GET'])
 @flask_login.login_required
 def show_top10():
-	cursor.execute("SELECT email from top10")
+	cursor.execute("SELECT email from Registered_Users as R order by R.contribution desc limit 10")
 	top10 = cursor.fetchall()
 	if top10 != ():
 		return render_template('top_contributors.html', list=top10)
