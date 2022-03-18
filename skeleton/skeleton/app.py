@@ -288,17 +288,31 @@ def list_friends():
 	uid=getUserIdFromEmail(flask_login.current_user.id)
 	cursor=conn.cursor()
 	cursor.execute("SELECT friend_id FROM Friends_list WHERE owner_id=%s",uid)
+	friends_list=cursor.fetchall()
+	cursor.execute("SELECT email FROM registered_users where user_id IN %s",friends_list)
+	friends_username=cursor.fetchall()
 	
-	if cursor.fetchall():
-		freinds_list=cursor.fetchall()
-		return render_template('friends_list.html', list=freinds_list, name=flask_login.current_user.id)
+	if friends_list != ():
+		return render_template('friendslist.html', list=friends_username, name=flask_login.current_user.id)
 	
 	return render_template('friendslist.html', name=flask_login.current_user.id)
 
 @app.route('/add_friends',methods=['POST','GET'])
 @flask_login.login_required
 def add_friends():
-	
+	if request.method == 'POST':
+		uid=getUserIdFromEmail(flask_login.current_user.id)
+		email = request.form.get('email')
+		print("email ",email)
+		cursor=conn.cursor()
+		cursor.execute("SELECT user_id FROM registered_users WHERE email=%s",email)
+		friend_id=cursor.fetchall()
+		if friend_id != ():
+			print("friend id",friend_id[0][0])
+			if friend_id[0][0] != uid:
+				print("friend list ", friend_id, uid)
+				cursor.execute('''INSERT INTO friends_list (owner_id, friend_id) VALUES (%s, %s )''',(uid, friend_id))
+				conn.commit()
 	return render_template('add_friend.html',name=flask_login.current_user.id)
 
 
