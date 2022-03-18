@@ -131,7 +131,7 @@ def register_user():
 		print("couldn't find all tokens") #this prints to shell, end users will not see this (all print statements go to shell)
 		return flask.redirect(flask.url_for('register'))
 	cursor = conn.cursor()
-	test =  isEmailUnique(email)
+	test = isEmailUnique(email)
 	if test:
 		print(cursor.execute("INSERT INTO Registered_Users (email, passcode) VALUES ('{0}', '{1}')".format(email, password)))
 		conn.commit()
@@ -239,13 +239,13 @@ def upload_file():
 		caption = request.form.get('caption')
 		album_name= request.form.get('album')
 		photo_data =imgfile.read()
-		tag_name = request.form.get('tag_name') 
 		cursor = conn.cursor()
 		cursor.execute("SELECT album_id FROM  Albums WHERE album_name=%s",(album_name))
 		album_result=cursor.fetchall()
 		if (cursor.rowcount!=0):
 			print(uid,  album_result,  caption)
 			cursor.execute('''INSERT INTO Photos (user_id, album_id,imgdata, caption) VALUES (%s, %s, %s, %s )''' ,(uid,  album_result,photo_data,  caption))
+			cursor.execute("UPDATE Registered_Users AS R SET contribution = contribution + 1 WHERE R.uid=%d", (uid))
 			conn.commit()
 			return render_template('hello.html', name=flask_login.current_user.id, message='Photo uploaded!', photos=getUsersPhotos(uid),base64=base64)
 			#The method is GET so we return a  HTML form to upload the a photo.
@@ -254,6 +254,7 @@ def upload_file():
 
 	else:
 		return render_template('upload.html')
+	cursor.execute("SELECT album_id FROM  Albums WHERE album_name=%s",(album_name))
 #end photo uploading code
 
 
@@ -268,7 +269,7 @@ def home_page():
 		themes.append({})
 		
 		themes[i][0] = t[i][0] #photo id
-		themes[i][1] = t[i][1] # user id
+		themes[i][1] = t[i][1] # user if
 		themes[i][2] = t[i][2] # album_id
 		themes[i][3] = t[i][3] #img date
 		themes[i][4] = t[i][4] # caption
@@ -288,43 +289,36 @@ def list_friends():
 	uid=getUserIdFromEmail(flask_login.current_user.id)
 	cursor=conn.cursor()
 	cursor.execute("SELECT friend_id FROM Friends_list WHERE owner_id=%s",uid)
-	friends_list=cursor.fetchall()
-	if friends_list != ():
-		cursor.execute("SELECT email FROM registered_users where user_id IN %s",friends_list)
-		friends_username=cursor.fetchall()
-		
-		if friends_username != ():
-			return render_template('friendslist.html', list=friends_username, name=flask_login.current_user.id)
+	
+	if cursor.fetchall():
+		freinds_list=cursor.fetchall()
+		return render_template('friends_list.html', list=freinds_list, name=flask_login.current_user.id)
 	
 	return render_template('friendslist.html', name=flask_login.current_user.id)
 
 @app.route('/add_friends',methods=['POST','GET'])
 @flask_login.login_required
 def add_friends():
-	if request.method == 'POST':
-		uid=getUserIdFromEmail(flask_login.current_user.id)
-		email = request.form.get('email')
-		print("email ",email)
-		cursor=conn.cursor()
-		cursor.execute("SELECT user_id FROM registered_users WHERE email=%s",email)
-		friend_id=cursor.fetchall()
-		if friend_id != ():
-			print("friend id",friend_id[0][0])
-			if friend_id[0][0] != uid:
-				print("friend list ", friend_id, uid)
-				cursor.execute('''INSERT INTO friends_list (owner_id, friend_id) VALUES (%s, %s )''',(uid, friend_id))
-				conn.commit()
-				return render_template('friendslist.html',name=flask_login.current_user.id)
-		else:
-			return render_template('add_friend.html',name=flask_login.current_user.id, message="The user is not in the system.")
+	
 	return render_template('add_friend.html',name=flask_login.current_user.id)
+
+
+
+@app.route("/top_contributors", methods=['POST', 'GET'])
+def show_top10():
+	cursor.execute("SELECT email from Registered_Users as R order by R.contribution desc limit 10")
+	top10 = cursor.fetchall()
+	if top10 != ():
+		return render_template('top_contributors.html', list=top10)
+	
+	return render_template('top_contributors.html')
+
 
 
 
 #default page
 @app.route("/", methods=['GET'])
 def hello():
-
 	return render_template('hello.html', message='Welecome to Photoshare')
 
 
