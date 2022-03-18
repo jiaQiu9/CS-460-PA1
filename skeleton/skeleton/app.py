@@ -12,7 +12,7 @@
 from unittest import result
 import flask
 from flask import Flask, Response, request, render_template, redirect, url_for
-from flask.ext.mysql import MySQL
+from flaskext.mysql import MySQL
 import flask_login
 import datetime
 #for image uploading
@@ -304,7 +304,7 @@ def add_friends():
 
 
 
-@app.route("/top_contributors", methods=[])
+@app.route("/top_contributors", methods=['POST', 'GET'])
 @flask_login.login_required
 def show_top10():
 	cursor.execute("SELECT email from top10")
