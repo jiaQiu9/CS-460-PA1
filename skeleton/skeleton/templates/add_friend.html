@@ -42,6 +42,11 @@
 
 
 <body>
+    {% if message %}
+        <h1> {{message}}</h1>
+        <h1> Please enter your friend's email again.</h1>
+    {% endif %}
+    <br> 
     <div class="cetner">
         <h1>Enter your friend's email below</h1>
     </div>
