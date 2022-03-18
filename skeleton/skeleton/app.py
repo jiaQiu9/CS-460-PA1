@@ -289,11 +289,12 @@ def list_friends():
 	cursor=conn.cursor()
 	cursor.execute("SELECT friend_id FROM Friends_list WHERE owner_id=%s",uid)
 	friends_list=cursor.fetchall()
-	cursor.execute("SELECT email FROM registered_users where user_id IN %s",friends_list)
-	friends_username=cursor.fetchall()
-	
 	if friends_list != ():
-		return render_template('friendslist.html', list=friends_username, name=flask_login.current_user.id)
+		cursor.execute("SELECT email FROM registered_users where user_id IN %s",friends_list)
+		friends_username=cursor.fetchall()
+		
+		if friends_list != ():
+			return render_template('friendslist.html', list=friends_username, name=flask_login.current_user.id)
 	
 	return render_template('friendslist.html', name=flask_login.current_user.id)
 
