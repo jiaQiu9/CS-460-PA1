@@ -254,11 +254,11 @@ def upload_file():
 
 	else:
 		return render_template('upload.html')
-	cursor.execute("SELECT album_id FROM  Albums WHERE album_name=%s",(album_name))
+	
 #end photo uploading code
 
 
-@app.route("/home", methods=['GET'])
+@app.route("/home", methods=['GET','POST'])
 def home_page():
 	themes = []
 	cursor = conn.cursor()
@@ -277,6 +277,21 @@ def home_page():
 		album_name=cursor.fetchall()
 		#print("album_name :", album_name[0][0])
 		themes[i][5]= album_name[0][0] #album name
+		cursor.execute("SELECT C.content, R.email FROM comments as C, registered_users as R WHERE C.photo_id=%s AND C.user_id=R.user_id",t[i][0])
+		current_comm=cursor.fetchall()
+		if current_comm != ():
+			print(current_comm)
+			themes[i][6]=current_comm
+
+		else:
+			themes[i][6]=current_comm
+		print(themes[i][0])
+	# if request.method == 'POST':
+	# 	comments=request.form.get('comments')
+	# 	#print(themes[i][6] , comments)
+	# 	#themes[i][6]= themes[i][6] + tuple(comments)
+	# 	print(themes[i][0])
+	# comments=" "
 	return render_template('home.html', result = themes,base64=base64)
 
 
@@ -289,17 +304,50 @@ def list_friends():
 	uid=getUserIdFromEmail(flask_login.current_user.id)
 	cursor=conn.cursor()
 	cursor.execute("SELECT friend_id FROM Friends_list WHERE owner_id=%s",uid)
-	
-	if cursor.fetchall():
-		freinds_list=cursor.fetchall()
-		return render_template('friends_list.html', list=freinds_list, name=flask_login.current_user.id)
+	friends_list=cursor.fetchall()
+	print("friends list ", friends_list )
+	if friends_list != ():
+		list_f=[]
+		friends_email=[]
+		for i in friends_list:
+			print(i[0])
+			# list_f.append(i[0])
+			cursor.execute("SELECT email FROM registered_users where user_id = %s",i[0])
+			friends_username=cursor.fetchall()
+			if friends_username != ():
+				print("friends user name ",friends_username[0][0])
+				friends_email.append(friends_username[0])
+		print(friends_email)
+		# if friends_username != ():
+		return render_template('friendslist.html', list=friends_email, name=flask_login.current_user.id)
+
 	
 	return render_template('friendslist.html', name=flask_login.current_user.id)
 
 @app.route('/add_friends',methods=['POST','GET'])
 @flask_login.login_required
 def add_friends():
-	
+	if request.method == 'POST':
+		uid=getUserIdFromEmail(flask_login.current_user.id)
+		email = request.form.get('email')
+		print("email ",email)
+		cursor=conn.cursor()
+		cursor.execute("SELECT user_id FROM registered_users WHERE email=%s",email)
+		friend_id=cursor.fetchall()
+		print("firend id", friend_id)
+		print("friend id ", friend_id !=() )
+		if friend_id != () :
+			print("firend is ", friend_id)
+		# 	print("friend id",friend_id[0][0])
+			if friend_id[0][0] != uid:
+				print("friend list ", friend_id, uid)
+				friendid=friend_id[0][0]
+				cursor.execute('''INSERT INTO friends_list (owner_id, friend_id) VALUES (%s, %s )''',(uid, friendid))
+				conn.commit()
+				return render_template('home.html', message="Friend was successfully added.")
+		else:
+			print("here is firend-id is empty")
+			return render_template('add_friend.html',name=flask_login.current_user.id, message="The user is not in the system.")
 	return render_template('add_friend.html',name=flask_login.current_user.id)
 
 

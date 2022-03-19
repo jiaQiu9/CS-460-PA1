@@ -75,6 +75,16 @@
       caption: {{photo[4]}} <br>
       <img src='data:image/jpg;base64, {{ base64.b64encode(photo[3]).decode("ascii") }}' width="50%" height="50%" />
       <br>
+      {% for comments in photo[6] %}
+        {{comments[0]}} - user: {{comments[1]}}<br>
+      {% endfor %}
+      <br>
+      <!-- for comment section -->
+      <form method="post" enctype="multipart/form-data" action="/home">
+        <lablel for="comments">Comments:</lablel>
+        <input type="text" name="comments" required='true'><br> 
+        
+      </form>
 
     </li>
     {% endfor %}
