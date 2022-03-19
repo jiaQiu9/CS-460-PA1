@@ -245,10 +245,10 @@ def upload_file():
 		album_result=cursor.fetchall()
 		if (cursor.rowcount!=0):
 			print(uid,  album_result,  caption)
-			cursor.execute('''INSERT INTO Photos (user_id, album_id,imgdata, caption) VALUES (%s, %s, %s, %s )''' ,(uid,  album_result,photo_data,  caption))
-			conn.commit()
+			# cursor.execute('''INSERT INTO Photos (user_id, album_id,imgdata, caption) VALUES (%s, %s, %s, %s )''' ,(uid,  album_result,photo_data,  caption))
+			# conn.commit()
 			return render_template('hello.html', name=flask_login.current_user.id, message='Photo uploaded!', photos=getUsersPhotos(uid),base64=base64)
-			#The method is GET so we return a  HTML form to upload the a photo.
+			# #The method is GET so we return a  HTML form to upload the a photo.
 		else:
 			return render_template('upload.html')
 
