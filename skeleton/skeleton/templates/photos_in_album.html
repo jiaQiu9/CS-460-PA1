@@ -10,7 +10,7 @@
         integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
     <!-- name of the tab -->
     
-    <title>Create an account!</title>
+    <title>Freinds_list</title>
 
 
 </head>
@@ -34,13 +34,6 @@
                 <a class="nav-link" href="/profile">My Profile</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="/friendslist">Friends List</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="/upload">Upload Photo</a>
-            </li>
-
-            <li class="nav-item">
                 <a class="nav-link" href="/logout">Logout</a>
             </li>
 
@@ -52,21 +45,21 @@
 
 <body>
 
-    {% if message  %}
-    <h1>{{message}}!</h1>
+    <h1> {{message}}</h1>
+    <br> 
+    {% if result %}
+    <ul>
+        {% for photo in result%}
+
+        caption: {{photo[2]}} <br>
+        <img src='data:image/jpg;base64, {{ base64.b64encode(photo[1]).decode("ascii") }}' width="50%" height="50%" />
+        <br>
+        <br>
+            
+
+        {% endfor %}
+    </ul>
     {% endif %}
-
-
-    <div class="cetner">
-        <h1>Enter your your new album name</h1>
-    </div>
-    <div id="content" class="center">
-        <form method="post" action="{{ url_for('create_album') }}" class="center">
-            <label for="email">Enter the new album name:</label>
-            <input type="text" name="album_name" /><br />
-            <input type="submit" class="center"/>
-        </form>
-    </div>
 </body>
 
 

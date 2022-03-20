@@ -21,6 +21,7 @@ CREATE TABLE Anonymous_User (
 
 CREATE TABLE Albums (
 	album_id int4 AUTO_INCREMENT PRIMARY KEY,
+  album_name varchar(20),
 	user_id int4, 
 	creation_date DATE, 
 	FOREIGN KEY (user_id) REFERENCES Registered_Users(user_id) 
@@ -66,7 +67,10 @@ ADD CHECK (comments.user_id <> (SELECT user_id FROM Photos P WHERE photo_id = P.
 
 SELECT user_id FROM Photos P WHERE photo_id = P.photo_id;
 
-CREATE TABLE Tags(tag_name VARCHAR(50) PRIMARY KEY);
+CREATE TABLE Tags(
+  tag_name VARCHAR(50) PRIMARY KEY,
+  tag_num int
+);
 
 CREATE TABLE Friends_list (
 	owner_id int4, 
@@ -97,7 +101,7 @@ CREATE TABLE user_likes_photo (
 );
 
 CREATE TABLE Photo_has_tags (
-	tag_name  VARCHAR(50), 
+	  tag_name  VARCHAR(50), 
     photo_id  int4, 
     PRIMARY KEY (tag_name, photo_id),
     FOREIGN KEY (photo_id) REFERENCES Photos(photo_id) 

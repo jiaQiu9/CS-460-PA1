@@ -10,7 +10,7 @@
         integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
     <!-- name of the tab -->
     
-    <title>Create an account!</title>
+    <title>Add Friends!</title>
 
 
 </head>
@@ -27,19 +27,9 @@
             <li class="nav-item active">
                 <a class="nav-link" href="/home">Home <span class="sr-only">(current)</span></a>
             </li>
-            
+
         </ul>
         <ul class="navbar-nav">
-            <li class="nav-item">
-                <a class="nav-link" href="/profile">My Profile</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="/friendslist">Friends List</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="/upload">Upload Photo</a>
-            </li>
-
             <li class="nav-item">
                 <a class="nav-link" href="/logout">Logout</a>
             </li>
@@ -49,22 +39,24 @@
 </nav>
 
 
-
 <body>
-
-    {% if message  %}
-    <h1>{{message}}!</h1>
-    {% endif %}
-
-
     <div class="cetner">
-        <h1>Enter your your new album name</h1>
+        <h1>Add tag to your photo</h1>
     </div>
     <div id="content" class="center">
-        <form method="post" action="{{ url_for('create_album') }}" class="center">
-            <label for="email">Enter the new album name:</label>
-            <input type="text" name="album_name" /><br />
-            <input type="submit" class="center"/>
+        <form method="post" action="{{ url_for('add_tags') }}" class="center">
+            <input type="hidden" name="pid" value={{photo}}><br/>
+
+            <label for="tag name">Add a tag:</label>
+            <input type="text" name="tag" required='true' /><br />
+            
+            <div class="inline">
+                <input type="submit" name="btn" value="Add another tag" /> 
+                <input type="submit" name="btn" value="Add and finish" required='true'/> 
+              </div>
+        </form>
+        <form action="{{ url_for('hello') }}" class="center">
+            <input type="submit" value="Finished" />
         </form>
     </div>
 </body>

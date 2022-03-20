@@ -34,6 +34,11 @@
 
       </ul>
       <ul class="navbar-nav">
+
+        <li class="nav-item">
+          <a class="nav-link" href="/profile">My Profile</a>
+        </li>
+
         <li class="nav-item">
           <a class="nav-link" href="/friendslist">Friends List</a>
         </li>
@@ -46,19 +51,7 @@
         <li class="nav-item">
           <a class="nav-link" href="/add_friends">Add Friends</a>
         </li>
-        <li class="nav-item">
-          <a class="nav-link" href="/login">Login</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="/add_freinds">add friends</a>
-        </li>
 
-        <li class="nav-item">
-          <a class="nav-link" href="/register">Register</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="/logout">Logout</a>
-        </li>
 
       </ul>
     </div>
@@ -78,6 +71,9 @@
       caption: {{photo[4]}} <br>
       <img src='data:image/jpg;base64, {{ base64.b64encode(photo[3]).decode("ascii") }}' width="50%" height="50%" />
       <br>
+      {% for comments in photo[6] %}
+        {{comments[0]}} - user: {{[comments[1]]}}
+      {% endfor %}
 
     </li>
     {% endfor %}
