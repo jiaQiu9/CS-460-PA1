@@ -202,6 +202,29 @@ def protected():
 
 
 
+# see photos uploaded by the users that's tagged with the <tagName>
+@app.route('/<tagName>/tag', methods=['GET'])
+@flask_login.login_required
+def personal_tagged_photos(tagName):
+	cursor=conn.cursor()
+	uid=getUserIdFromEmail(flask_login.current_user.id)
+	cursor.execute("SELECT photo_id FROM Photo_has_tags as pht, Photos as p WHERE pht.photo_id=p.photo_id and user_id=%s and tag_name=%s",(uid, tagName))
+	tag_photos = cursor.fetchall()
+
+	return render_template('private_tagged_photos.html', name=flask_login.current_user.id, message="See all your '%s' photo", photos=tag_photos)
+
+# see all tags that the user has
+@app.route('/user_tags', methods=['GET'])
+@flask_login.login_required
+def personal_tags():
+	cursor=conn.cursor()
+	uid=getUserIdFromEmail(flask_login.current_user.id)
+	cursor.execute("SELECT DISTINCT tag_name FROM Photo_has_tags as pht, Photos as p WHERE pht.photo_id=p.photo_id and user_id=%s",(uid))
+	List = cursor.fetchall()
+
+	return render_template('user_tags.html', name=flask_login.current_user.id, tags=List)
+
+
 # create album 
 @app.route('/album_create', methods=['GET', 'POST'])
 @flask_login.login_required
@@ -214,7 +237,7 @@ def create_album():
 		cursor.execute("SELECT * FROM Albums WHERE album_name=%s",album_name)
 		result=cursor.fetchall()
 		print(cursor.rowcount)
-		if (cursor.rowcount == 0 ):
+		if (cursor.rowcount == 0):
 			cursor.execute("INSERT INTO Albums (user_id, creation_date,album_name) VALUES (%s,%s,%s)",(uid,date, album_name))
 			conn.commit()
 			return render_template('hello.html',  name=flask_login.current_user.id,message=" Album create")
@@ -245,17 +268,104 @@ def upload_file():
 		if (cursor.rowcount!=0):
 			print(uid,  album_result,  caption)
 			cursor.execute('''INSERT INTO Photos (user_id, album_id,imgdata, caption) VALUES (%s, %s, %s, %s )''' ,(uid,  album_result,photo_data,  caption))
-			cursor.execute("UPDATE Registered_Users AS R SET contribution = contribution + 1 WHERE R.uid=%d", (uid))
+			cursor.execute("UPDATE Registered_Users AS R SET contribution = contribution + 1 WHERE R.user_id=%s", (uid))
 			conn.commit()
-			return render_template('hello.html', name=flask_login.current_user.id, message='Photo uploaded!', photos=getUsersPhotos(uid),base64=base64)
-			#The method is GET so we return a  HTML form to upload the a photo.
+			cursor.execute("SELECT photo_id FROM photos ORDER BY photo_id DESC LIMIT 1")
+			pid=cursor.fetchall()
+			print("\nwhen we upload the file, pid is:", pid,"\n")
+			return render_template('add_tags.html', photo=pid[0][0])
+			# return render_template('hello.html', name=flask_login.current_user.id, message='Photo uploaded!', photos=getUsersPhotos(uid),base64=base64)
+			# The method is GET so we return a  HTML form to upload the a photo.
 		else:
 			return render_template('upload.html')
-
 	else:
 		return render_template('upload.html')
-	cursor.execute("SELECT album_id FROM  Albums WHERE album_name=%s",(album_name))
 #end photo uploading code
+
+# add tags to photo
+@app.route("/add_tags", methods=['POST'])
+def add_tags():
+	uid=getUserIdFromEmail(flask_login.current_user.id)
+	cursor = conn.cursor()
+	if request.method=="POST":
+		tag = request.form.get('tag')
+		print("\nget tag:", tag)
+
+		pid = request.form.get('pid')
+		print("\nget pid:", pid, "\n")
+		# try:
+		# 	sql = "UPDATE tags SET tag_num=(tag_num+1) WHERE tag_name=%s"
+		# 	cursor.execute(sql, (tag))
+		# 	conn.commit()
+		# 	print("first try ")
+		# except ValueError:
+		# 	cursor.execute("INSERT INTO tags (tag_name, tag_num) VALUES('{0}', 1)".format(tag))
+		# 	conn.commit()
+		# 	print("first except")
+		try:
+			cursor.execute("INSERT INTO tags (tag_name, tag_num) VALUES('{0}', 1)".format(tag))
+			conn.commit()
+			print("first try")
+		except:
+			sql = "UPDATE tags SET tag_num=(tag_num+1) WHERE tag_name=%s"
+			cursor.execute(sql, (tag))
+			conn.commit()
+			print("first except ")
+
+
+		# try:
+		# 	sql = "INSERT INTO Photo_has_tags (tag_name, photo_id) VALUES (%s, %s)"
+		# 	cursor.execute(sql, (tag, pid))
+		# 	conn.commit()
+		# 	print("2nd t")
+		# except:
+		# 	sql = "UPDATE tags SET tag_num=(tag_num-1) WHERE tag_name=%s"
+		# 	cursor.execute(sql, (tag))
+		# 	conn.commit()
+		# 	print("2nd e")
+		try:
+			sql = "INSERT INTO Photo_has_tags (tag_name, photo_id) VALUES (%s, %s)"
+			cursor.execute(sql, (tag, pid))
+			conn.commit()
+			print("2nd t")
+		except:
+			sql = "INSERT INTO Photo_has_tags (tag_name, photo_id) VALUES (%s, %s)"
+			cursor.execute(sql, (tag, pid))
+			conn.commit()
+			print("2nd t")
+
+		print("pid in post if ", pid)
+		if request.form['btn'] == 'Add another tag':
+			print(request.form['btn'])
+			print("pid add another tag ", pid)
+			return render_template('add_tags.html', photo=pid)
+		elif request.form['btn'] == 'Add and finish':
+			print(request.form['btn'])
+			return render_template('hello.html')
+		else:
+			print(request.form['btn'])
+			return render_template('hello.html')
+
+
+
+
+# try:
+			# 	sql = "UPDATE tags SET tag_num=(tag_num+1) WHERE tag_name=%s"
+			# 	cursor.execute(sql, (tag))
+			# 	conn.commit()
+			# except ValueError:
+			# 	cursor.execute("INSERT INTO tags (tag_name, tag_num) VALUES('{0}', 1)".format(tag))
+			# #conn.commit()
+			# try:
+			# 	sql = "INSERT INTO Photo_has_tags (tag_name, photo_id) VALUES (%s, %s)"
+			# 	cursor.execute(sql, (tag, pid))
+			# #conn.commit()
+			# except:
+			# 	sql = "UPDATE tags SET tag_num=(tag_num-1) WHERE tag_name=%s"
+			# 	cursor.execute(sql, (tag))
+			# conn.commit()
+
+
 
 
 @app.route("/home", methods=['GET'])
@@ -296,12 +406,27 @@ def list_friends():
 	
 	return render_template('friendslist.html', name=flask_login.current_user.id)
 
+
 @app.route('/add_friends',methods=['POST','GET'])
 @flask_login.login_required
 def add_friends():
-	
+	if request.method == 'POST':
+		uid=getUserIdFromEmail(flask_login.current_user.id)
+		email = request.form.get('email')
+		print("email ",email)
+		cursor=conn.cursor()
+		cursor.execute("SELECT user_id FROM registered_users WHERE email=%s",email)
+		friend_id=cursor.fetchall()
+		if friend_id != ():
+			print("friend id",friend_id[0][0])
+			if friend_id[0][0] != uid:
+				print("friend list ", friend_id, uid)
+				cursor.execute('''INSERT INTO friends_list (owner_id, friend_id) VALUES (%s, %s )''',(uid, friend_id))
+				conn.commit()
+				return render_template('friendslist.html',name=flask_login.current_user.id)
+		else:
+			return render_template('add_friend.html',name=flask_login.current_user.id, message="The user is not in the system.")
 	return render_template('add_friend.html',name=flask_login.current_user.id)
-
 
 
 @app.route("/top_contributors", methods=['POST', 'GET'])

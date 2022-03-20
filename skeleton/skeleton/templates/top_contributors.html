@@ -70,12 +70,12 @@
   <br>
   <h1>Top 10 Contributors</h1>
 
-  <ul>
+  <ol>
     {% for user in list %}
 
-    <li> {{user}} </li>
+    <li> {{user[0]}} </li>
     {% endfor %}
-  </ul>
+  </ol>
 
 </body>
 
@@ -85,7 +85,6 @@
     /* making the background to the specific color in hex */
     background-color: #212121;
     color: White;
-
   }
 </style>
 
