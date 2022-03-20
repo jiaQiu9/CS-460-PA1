@@ -1,3 +1,6 @@
+<!-- This file is to allow user, registered or not, to browse all photos sorted by date. -->
+
+
 <!-- specify the document is of type html -->
 <!doctype html>
 <!-- specify the language is english -->
@@ -11,8 +14,9 @@
   <!-- Bootstrap CSS, make the page look better and formated -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css"
     integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-  <!-- name of the tab -->
-  <title>Home Page</title>
+  <!-- default name of the tab -->
+
+  <title>Browse</title>
 
 </head>
 
@@ -40,13 +44,16 @@
         </li>
 
         <li class="nav-item">
-          <a class="nav-link" href="/register">Register</a>
+          <a class="nav-link" href="/friendslist">Friends List</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="/login">Login</a>
+          <a class="nav-link" href="/upload">Upload Photo</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="/logout">Logout</a>
+          <a class="nav-link" href="/album_create">Create_album</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/add_friends">Add Friends</a>
         </li>
 
 
@@ -58,39 +65,31 @@
     </div>
   </nav>
   <br>
-  <h1> Welcom to Photoshare</h1>
+  <h1> See the latest photos from all users </h1>
+  <br>
 
   <ul>
-    <div id="content" class="center">
+    {% for photo in result %}
+
+      User: {{photo[1]}}<br>
+      Album:{{photo[2]}}<br>
+      {{photo[4]}} <br>
+      <img src='data:image/jpg;base64, {{ base64.b64encode(photo[3]).decode("ascii") }}' width="35%" height="35%" />
       <br>
+      {% for comments in photo[6] %}
+        {{comments[0]}} - user: {{[comments[1]]}}
+      {% endfor %}
       <br>
       <br>
 
-
-      <div id="content" class="center">
-        <form method="post" action="{{ url_for('search_tag') }}" class="center">
-            <label for="search">Search by tag:</label>
-            <input type="submit" name="btn" value="photos by date" required="true" class="center"/>
-        </form>
-      </div>
-
-      <br>
-      <br>
-      <a href= "{{ url_for('all_photos')}}"><p style="text-align:center"> Start to browse all photos! </p> </a> 
-      <br>
-      <a href= "{{ url_for('top_tags')}}"><p style="text-align:center"> See top 10 popular tags </p> </a> 
-      <br>
-      <a href= "{{ url_for('top_contributors')}}"><p style="text-align:center"> See top 10 contributors </p> </a> 
-
-
-  </div>
+    {% endfor %}
   </ul>
 
 </body>
 
 <!-- dark mode for the web page -->
 <style>
-  h1 {text-align: center;}
+  h1{text-align: center;}
   body {
     /* making the background to the specific color in hex */
     background-color: #212121;

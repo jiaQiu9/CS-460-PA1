@@ -256,7 +256,37 @@ def private_tagged_photos(variable):
 		return render_template('private_tagged_photos.html', user=uid, tag=variable, result=themes, base64=base64)
 
 
+# see photos uploaded by the users that's tagged with the <tagName>
+@app.route('/<variable>/private_tagged_photos', methods=['GET'])
+def public_tagged_photos(variable):
+	themes = []
+	cursor=conn.cursor()
+	try:
+		cursor.execute("SELECT p.imgdata, p.caption, a.album_name, r.email \
+						FROM Photos as p, Albums as a, Registered_users as r \
+						WHERE p.album_id=a.album_id and p.user_id=r.user_id and tag_name=%s",(variable))
+		t = cursor.fetchall()
+		num = len(t) - 1
+		if len(t) != 0:
+			for i in range(len(t)):
+				themes.append({})
+				themes[i][0] = t[num-i][0] #img data
+				themes[i][1] = t[num-i][1] #caption
+				themes[i][2] = t[num-i][2] #album_name
+				themes[i][3] = t[num-i][3] #user email
+			return render_template('public_tagged_photos.html', tag=variable, message="See all photos tagged {0}!".format(variable), result=themes, base64=base64)
+		else:
+			return render_template('public_tagged_photos.html', tag=variable, message="Results not found. Try another tag.", result=themes, base64=base64)
+	except:
+		return render_template('public_tagged_photos.html', tag=variable, message="Results not found. Try another tag.", result=themes, base64=base64)
 
+
+# see photos uploaded by the users that's tagged with the <tagName>
+@app.route('/search_tag', methods=['POST'])
+def search_tag():
+	#The request method is POST (page is recieving data)
+	tag = flask.request.form['search']
+	return render_template('public_tagged_photos.html', variable = tag)
 
 
 # create album 
@@ -356,75 +386,75 @@ def add_tags():
 	cursor = conn.cursor()
 	if request.method=="POST":
 		tag = request.form.get('tag')
-		print("\nget tag:", tag)
 
 		pid = request.form.get('pid')
-		print("\nget pid:", pid, "\n")
 		try:
 			cursor.execute("INSERT INTO tags (tag_name, tag_num) VALUES('{0}', 1)".format(tag))
 			conn.commit()
-			print("first try")
 		except:
 			sql = "UPDATE tags SET tag_num=(tag_num+1) WHERE tag_name=%s"
 			cursor.execute(sql, (tag))
 			conn.commit()
-			print("first except ")
 		try:
 			sql = "INSERT INTO Photo_has_tags (tag_name, photo_id) VALUES (%s, %s)"
 			cursor.execute(sql, (tag, pid))
 			conn.commit()
-			print("2nd t")
 		except:
 			sql = "INSERT INTO Photo_has_tags (tag_name, photo_id) VALUES (%s, %s)"
 			cursor.execute(sql, (tag, pid))
 			conn.commit()
-			print("2nd t")
 
-		print("pid in post if ", pid)
+		
 		if request.form['btn'] == 'Add another tag':
-			print(request.form['btn'])
-			print("pid add another tag ", pid)
 			return render_template('add_tags.html', photo=pid)
 		elif request.form['btn'] == 'Add and finish':
-			print(request.form['btn'])
 			return render_template('hello.html')
 		else:
-			print(request.form['btn'])
 			return render_template('hello.html')
-
 
 
 
 @app.route("/home", methods=['GET','POST'])
 def home_page():
-	themes = []
+	return render_template('home.html')
+	# if request.method==""
+	# if request.method=="POST":
+	# 	tag = request.form.get('tag')
+
+	# 	if request.form['btn'] == 'by date':
+	# 		return render_template('all_photos.html', tag=tag)
+	# 	# elif request.form['btn'] == 'Add and finish':
+	# 	# 	return render_template('hello.html')
+	# 	else:
+	# 		return render_template('home.html', tag=tag)
+
+@app.route("/all_photos", methods=['GET'])
+def all_photos():
 	cursor = conn.cursor()
-	cursor.execute("SELECT photo_id, user_id, album_id, imgdata, caption FROM Photos")
+	cursor.execute("SELECT P.photo_id, R.email, A.album_name, P.imgdata, P.caption \
+					FROM Photos as P, Albums as A, Registered_Users as R\
+					WHERE P.album_id=A.album_id and P.user_id=R.user_id")
 	t = cursor.fetchall()
+	num = len(t)-1
+	themes = []
 	for i in range(len(t)):
-		#print("album name")
 		themes.append({})
 		
-		themes[i][0] = t[i][0] #photo id
-		themes[i][1] = t[i][1] # user if
-		themes[i][2] = t[i][2] # album_id
-		themes[i][3] = t[i][3] #img date
-		themes[i][4] = t[i][4] # caption
-		cursor.execute("SELECT album_name FROM Albums WHERE album_id=%s",t[i][2])
-		album_name=cursor.fetchall()
-		#print("album_name :", album_name[0][0])
-		themes[i][5]= album_name[0][0] #album name
+		themes[i][0] = t[num-i][0] #photo id
+		themes[i][1] = t[num-i][1] #user email
+		themes[i][2] = t[num-i][2] #album name
+		themes[i][3] = t[num-i][3] #img data
+		themes[i][4] = t[num-i][4] #caption
+
 		#print out comments under each photo
-		cursor.execute("select c.content, r.email from comments as c, registered_users as r where c.photo_id=%s and c.user_id",t[i][0])
+		cursor.execute("select c.content, r.email from comments as c, registered_users as r where c.photo_id=%s and c.user_id",t[num-i][0])
 		current_comm=cursor.fetchall()
 		if current_comm != ():
 			themes[i][6]=current_comm
 		else:
 			themes[i][6]=current_comm
-	return render_template('home.html', result = themes,base64=base64)
 
-
-
+	return render_template('all_photos.html', result = themes, base64=base64)
 
 
 @app.route("/friendslist", methods=['POST','GET'])
@@ -470,7 +500,7 @@ def add_friends():
 
 
 @app.route("/top_contributors", methods=['POST', 'GET'])
-def show_top10():
+def top_contributors():
 	cursor.execute("SELECT email from Registered_Users as R order by R.contribution desc limit 10")
 	top10 = cursor.fetchall()
 	if top10 != ():
@@ -479,6 +509,14 @@ def show_top10():
 	return render_template('top_contributors.html')
 
 
+@app.route("/top_tags", methods=['POST', 'GET'])
+def top_tags():
+	cursor.execute("SELECT tag_name from tags order by tag_num desc limit 10")
+	top10 = cursor.fetchall()
+	if top10 != ():
+		return render_template('top_tags.html', list=top10)
+	
+	return render_template('top_tags.html')
 
 
 #default page
