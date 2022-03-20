@@ -111,7 +111,7 @@ def login():
 @app.route('/logout')
 def logout():
 	flask_login.logout_user()
-	return render_template('hello.html', message='Logged out')
+	return render_template('hello.html', score=None, message='Logged out')
 
 @login_manager.unauthorized_handler
 def unauthorized_handler():
@@ -139,7 +139,7 @@ def register_user():
 		user = User()
 		user.id = email
 		flask_login.login_user(user)
-		return render_template('hello.html', name=email, message='Account Created!')
+		return render_template('hello.html', score=0, name=email, message='Account Created!')
 	else:
 		print("couldn't find all tokens")
 		return flask.redirect(flask.url_for('register'))
@@ -317,7 +317,11 @@ def create_album():
 		if (cursor.rowcount == 0):
 			cursor.execute("INSERT INTO Albums (user_id, creation_date,album_name) VALUES (%s,%s,%s)",(uid,date, album_name))
 			conn.commit()
-			return render_template('hello.html',  name=flask_login.current_user.id,message=" Album create")
+
+			cursor.execute("SELECT contribution from registered_users WHERE user_id=%s",uid)
+			contrib=cursor.fetchall()
+
+			return render_template('hello.html', score=contrib, name=flask_login.current_user.id,message=" Album create")
 		else:
 			return render_template('album_create.html',message="The album name is already used, enter another one.")
 	return render_template('album_create.html')	
@@ -381,7 +385,6 @@ def upload_file():
 			cursor.execute("SELECT photo_id FROM photos ORDER BY photo_id DESC LIMIT 1")
 			pid=cursor.fetchall()
 			return render_template('add_tags.html', photo=pid[0][0])
-			# return render_template('hello.html', name=flask_login.current_user.id, message='Photo uploaded!', photos=getUsersPhotos(uid),base64=base64)
 			# The method is GET so we return a  HTML form to upload the a photo.
 		else:
 			return render_template('upload.html')
@@ -394,6 +397,10 @@ def upload_file():
 def add_tags():
 	uid=getUserIdFromEmail(flask_login.current_user.id)
 	cursor = conn.cursor()
+
+	cursor.execute("SELECT contribution from registered_users WHERE user_id=%s",uid)
+	contrib=cursor.fetchall()
+
 	if request.method=="POST":
 		tag = request.form.get('tag')
 
@@ -414,13 +421,12 @@ def add_tags():
 			cursor.execute(sql, (tag, pid))
 			conn.commit()
 
-		
 		if request.form['btn'] == 'Add another tag':
-			return render_template('add_tags.html', photo=pid)
+			return render_template('add_tags.html', photo=pid, message="Tag added")
 		elif request.form['btn'] == 'Add and finish':
-			return render_template('hello.html')
+			return render_template('hello.html', score=contrib, message="Tag added")
 		else:
-			return render_template('hello.html')
+			return render_template('hello.html', score=contrib)
 
 
 
@@ -523,8 +529,7 @@ def top_tags():
 #default page
 @app.route("/", methods=['GET'])
 def hello():
-
-	return render_template('hello.html', message='Welecome to Photoshare')
+	return render_template('hello.html', score=None, message='Welecome to Photoshare')
 
 
 if __name__ == "__main__":
