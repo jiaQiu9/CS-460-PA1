@@ -21,7 +21,7 @@ CREATE TABLE Anonymous_User (
 
 CREATE TABLE Albums (
 	album_id int4 AUTO_INCREMENT PRIMARY KEY,
-    album_name varchar(20),
+  album_name varchar(20),
 	user_id int4, 
 	creation_date DATE, 
 	FOREIGN KEY (user_id) REFERENCES Registered_Users(user_id) 

@@ -198,8 +198,25 @@ def protected():
 	all_album_name=cursor.fetchall()
 	#print("album name of the current user",all_album_name[0][0])
 
-	return render_template('hello.html', name=flask_login.current_user.id, a_name=all_album_name, photos=themes,base64=base64)
+	cursor.execute("SELECT album_id, album_name FROM Albums WHERE user_id=%s",uid)
+	all_albums=cursor.fetchall()
+	#print("\nnumber of albums:", len(all_albums), "\n")
 
+	return render_template('hello.html', name=flask_login.current_user.id, albums=all_albums, photos=themes,base64=base64)
+
+
+
+
+# see all tags that the user has
+@app.route('/user_tags', methods=['GET'])
+@flask_login.login_required
+def personal_tags():
+	cursor=conn.cursor()
+	uid=getUserIdFromEmail(flask_login.current_user.id)
+	cursor.execute("SELECT DISTINCT tag_name FROM Photo_has_tags as pht, Photos as p WHERE pht.photo_id=p.photo_id and user_id=%s",(uid))
+	List = cursor.fetchall()
+
+	return render_template('user_tags.html', name=flask_login.current_user.id, tags=List)
 
 
 # see photos uploaded by the users that's tagged with the <tagName>
@@ -238,16 +255,8 @@ def private_tagged_photos(variable):
 	else:
 		return render_template('private_tagged_photos.html', user=uid, tag=variable, result=themes, base64=base64)
 
-# see all tags that the user has
-@app.route('/user_tags', methods=['GET'])
-@flask_login.login_required
-def personal_tags():
-	cursor=conn.cursor()
-	uid=getUserIdFromEmail(flask_login.current_user.id)
-	cursor.execute("SELECT DISTINCT tag_name FROM Photo_has_tags as pht, Photos as p WHERE pht.photo_id=p.photo_id and user_id=%s",(uid))
-	List = cursor.fetchall()
 
-	return render_template('user_tags.html', name=flask_login.current_user.id, tags=List)
+
 
 
 # create album 
@@ -270,6 +279,39 @@ def create_album():
 			return render_template('album_create.html',message="The album name is already used, enter another one.")
 	return render_template('album_create.html')	
 	
+
+# see all photos in one album 
+@app.route('/<variable>/photo_in_album', methods=['GET'])
+@flask_login.login_required
+def photos_in_album(variable):
+	themes = []
+	cursor=conn.cursor()
+	uid=getUserIdFromEmail(flask_login.current_user.id)
+
+	cursor.execute("SELECT A.album_name FROM albums as A WHERE A.album_id=%s", variable)
+	Al_nam = cursor.fetchall()
+
+	cursor.execute("SELECT p.photo_id, p.imgdata, p.caption \
+					FROM Photos as p \
+					WHERE user_id=%s and p.album_id=%s",(uid, variable))
+	t = cursor.fetchall()
+	if len(t) != 0:
+		for i in range(len(t)):
+			#print("album name")
+			themes.append({})
+			themes[i][0] = t[i][0] #photo_id
+			themes[i][1] = t[i][1] #img date
+			themes[i][2] = t[i][2] #caption
+		
+			cursor.execute("SELECT * FROM Albums WHERE user_id=%s",uid)
+			all_albums=cursor.fetchall()
+		
+		return render_template('photos_in_album.html', user=uid, result=themes, albums=all_albums, message="See all your photos in {0}".format(Al_nam[0][0]), base64=base64)
+
+	else:
+		return render_template('photos_in_album.html', user=uid, result=themes, message="There's no photo in {0}".format(Al_nam[0][0]), base64=base64)
+
+
 
 
 #begin photo uploading code

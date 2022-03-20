@@ -69,22 +69,26 @@
 
   {% endif %}
   <br>
-  {% if a_name %}
+  {% if albums %}
   <ul>
     <h3> Album list:</h3>
-    {% for aname in a_name %}
-    <li> {{aname[0]}}</li>
+    {% for album in albums %}
+    <li>  <a href= "{{ url_for('photos_in_album', variable=album[0]) }}">{{album[1]}}</a>  </li>
     {% endfor %}
   </ul>
+  {%else%}
+  <h3>You have no album!</h3>
   {% endif %}
 
   {% if photos %}
-  <h2>Here are your photos</h2>
+  <h2>Here are all your photos</h2>
   <ul>
     {% for photo in photos %}
     <li> Album_name: {{photo[5]}}<br>
       Caption: {{photo[4]}}<br>
       <img src='data:image/jpg;base64, {{ base64.b64encode(photo[3]).decode("ascii") }}' width="50%" height="50%" />
+      <br>
+      <br>
     </li>
     {% endfor %}
   </ul>
