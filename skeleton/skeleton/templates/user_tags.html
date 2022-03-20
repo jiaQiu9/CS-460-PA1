@@ -27,14 +27,17 @@
             <li class="nav-item active">
                 <a class="nav-link" href="/home">Home <span class="sr-only">(current)</span></a>
             </li>
-            
         </ul>
+
         <ul class="navbar-nav">
+            <li class="nav-item">
+                <a class="nav-link" href="/profile">My Profile</a>
+            </li>
             <li class="nav-item">
                 <a class="nav-link" href="/logout">Logout</a>
             </li>
-
         </ul>
+        
     </div>
 </nav>
 
@@ -47,10 +50,8 @@
     {% if tags %}
     <ul>
         {% for tag in tags %}
-            <li>{{tag[0]}}</li>
-            <!-- <li > <a href= "{{ url_for('tag', tagName={{tag[0]}}) }}">{{tag[0]}}</a> </li> -->
-            <!-- <a href= {{ url_for('personal_tagged_photos', tagName={{tag[0]}} ) }}></a>>{{tag[0]}}</a> -->
             
+            <li > <a href= "{{ url_for('private_tagged_photos', variable=tag[0]) }}">{{tag[0]}}</a> </li>
 
         {% endfor %}
     </ul>
