@@ -38,6 +38,11 @@
         <li class="nav-item">
           <a class="nav-link" href="/profile">My Profile</a>
         </li>
+        
+        <li class="nav-item">
+          <a class="nav-link" href="/search">Search Comments</a>
+        </li>
+
 
         <li class="nav-item">
           <a class="nav-link" href="/friendslist">Friends List</a>
@@ -62,7 +67,9 @@
   </nav>
   <br>
   <h1>Welcom to Photoshare</h1>
-
+  {% if message %}
+    <h2> {{ message }}</h2>
+  {% endif %}
   <ul>
     {% for photo in result %}
 

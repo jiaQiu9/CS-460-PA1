@@ -10,7 +10,7 @@
         integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
     <!-- name of the tab -->
     
-    <title>Image with comments</title>
+    <title>Search for comments</title>
 
 
 </head>
@@ -44,39 +44,33 @@
 
 
 <body>
-    <h1> {{ message }}</h1>
+    {% if message %}
+       <h1>{{ message }}</h1> 
+
+    {% endif %}
+
     <br>
-    
-    <img src='data:image/jpg;base64, {{ base64.b64encode(photo[0][1]).decode("ascii") }}' width="50%" height="50%" />
-    <p> photo by user {{ user_i }}</p>
-    <br>
+    <ul>
+        {% if list_of_comments %}
+            <h5>List of matched comments:</h5>
+            {% for comments in list_of_comments %}
+
+                <li>Comments: "{{ comments[0] }}     "      - by user: {{ comments[1] }}</li> <br>
+            {% endfor %}
+        {% else %}
+            <h5> No matched comments in the system.</h5>
+        {% endif %}
+    </ul>
     
     <h4> Add comments: </h4>
     <!-- the function to add comments -->
     <div>
-        <!-- for inserting comments -->
-        <form method="post" action="{{ url_for('insert_comment') }}" class="center">
+        <form method="post" action="{{ url_for('search_comments') }}" class="center">
             <label for="inscom">Enter comment:</label>
-            <input type="text" name="inscom" required="required" /><br />
-
-            
-            <input type="hidden" name="user_id" value="{{ cuid }}"> <br>
-
-            
-            <input type="hidden" name="photo_id" value="{{ photo_id }}"> <br>
-
-            <input type="hidden" name="owner" value="{{ owner }}"><br>
+            <input type="text" name="inscom" required="required"/><br />
 
             <input type="submit" class="center"/>
         </form>
-
-        <!-- for liking photos -->
-        <form method="POST" action="{{ url_for('like_photo') }}">
-            <input type="hidden" name="photo_id" value="{{ photo_id }}"> <br>
-            <input type="submit" class="center">
-
-        </form>
-
     </div>
 
 

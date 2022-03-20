@@ -333,7 +333,7 @@ def disp_post_comt(variable):
 	# print("photo comments data ",t)
 	print("user id for photo ", photo[0][0])
 	print("current uid ",uid)
-	return render_template("imag_comt.html", cuid=uid, owner=variable,user_i=uemail[0][0], photo_id=variable, photo=photo, message="Insert comments for this image", base64=base64)
+	return render_template("imag_comt.html", cuid=uid, owner=photo[0][0],user_i=uemail[0][0], photo_id=variable, photo=photo, message="Insert comments for this image", base64=base64)
 	
 
 # inserting comment to photo
@@ -354,14 +354,41 @@ def insert_comment():
 
 		cursor = conn.cursor()
 		date=datetime.date.today()
+		print("photo owner ", type(ph_owner) , " ",ph_owner)
+		print("current user ", type(user_id), " ", user_id )
+		print("photo owner == user id ", ph_owner == user_id)
 		if ph_owner == user_id:
 			return render_template("home.html", message="you cannot comment your own photo")
 		else:
 			cursor.execute("INSERT INTO comments (user_id, photo_id, content, com_date) VALUES (%s,%s,%s,%s)", (user_id,photo_id,comment_text,date))
 			conn.commit()
-			
 			return render_template("home.html", message="Comment was added")
-	
+
+#linking photo
+@app.route('/likes', methods=['GET','POST'])
+def like_photo():
+	if request.metho== "POST":
+		photo_id=request.form.get('photo_id')
+		uid=getUserIdFromEmail(flask_login.current_user.id)
+		cursor=conn.cursor()
+		cursor.execute("INSER INTO user_likes_photo (user_id, photo_id) VALUES (%s, %s)",(uid, photo_id))
+		conn.commit()
+		# need a render template
+		return render_template()
+
+# search comments
+@app.route('/search', methods=['POST','GET'])
+def search_comments():
+	if request.method == "POST":
+		cursor=conn.cursor()
+		comment=request.form.get('inscom')
+		cursor.execute("SELECT c.content, r.email FROM comments as c, registered_users as r WHERE \
+			c.user_id=r.user_id AND c.content=%s\
+				 GROUP BY r.user_id \
+					 ORDER BY COUNT(c.content) DESC ",comment)
+		lst_comment=cursor.fetchall()
+		print("lst of matched comments ", lst_comment)
+	return render_template('search_comment.html', list_of_comments=lst_comment)
 
 #begin photo uploading code
 # photos uploaded using base64 encoding so they can be directly embeded in HTML
