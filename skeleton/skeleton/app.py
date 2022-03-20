@@ -198,7 +198,7 @@ def protected():
 	all_album_name=cursor.fetchall()
 	#print("album name of the current user",all_album_name[0][0])
 
-	return render_template('hello.html', name=flask_login.current_user.id, message="Here's your profile",a_name=all_album_name, photos=themes,base64=base64)
+	return render_template('hello.html', name=flask_login.current_user.id, a_name=all_album_name, photos=themes,base64=base64)
 
 
 
@@ -293,15 +293,6 @@ def add_tags():
 
 		pid = request.form.get('pid')
 		print("\nget pid:", pid, "\n")
-		# try:
-		# 	sql = "UPDATE tags SET tag_num=(tag_num+1) WHERE tag_name=%s"
-		# 	cursor.execute(sql, (tag))
-		# 	conn.commit()
-		# 	print("first try ")
-		# except ValueError:
-		# 	cursor.execute("INSERT INTO tags (tag_name, tag_num) VALUES('{0}', 1)".format(tag))
-		# 	conn.commit()
-		# 	print("first except")
 		try:
 			cursor.execute("INSERT INTO tags (tag_name, tag_num) VALUES('{0}', 1)".format(tag))
 			conn.commit()
@@ -311,18 +302,6 @@ def add_tags():
 			cursor.execute(sql, (tag))
 			conn.commit()
 			print("first except ")
-
-
-		# try:
-		# 	sql = "INSERT INTO Photo_has_tags (tag_name, photo_id) VALUES (%s, %s)"
-		# 	cursor.execute(sql, (tag, pid))
-		# 	conn.commit()
-		# 	print("2nd t")
-		# except:
-		# 	sql = "UPDATE tags SET tag_num=(tag_num-1) WHERE tag_name=%s"
-		# 	cursor.execute(sql, (tag))
-		# 	conn.commit()
-		# 	print("2nd e")
 		try:
 			sql = "INSERT INTO Photo_has_tags (tag_name, photo_id) VALUES (%s, %s)"
 			cursor.execute(sql, (tag, pid))
@@ -349,26 +328,10 @@ def add_tags():
 
 
 
-# try:
-			# 	sql = "UPDATE tags SET tag_num=(tag_num+1) WHERE tag_name=%s"
-			# 	cursor.execute(sql, (tag))
-			# 	conn.commit()
-			# except ValueError:
-			# 	cursor.execute("INSERT INTO tags (tag_name, tag_num) VALUES('{0}', 1)".format(tag))
-			# #conn.commit()
-			# try:
-			# 	sql = "INSERT INTO Photo_has_tags (tag_name, photo_id) VALUES (%s, %s)"
-			# 	cursor.execute(sql, (tag, pid))
-			# #conn.commit()
-			# except:
-			# 	sql = "UPDATE tags SET tag_num=(tag_num-1) WHERE tag_name=%s"
-			# 	cursor.execute(sql, (tag))
-			# conn.commit()
 
 
 
-
-@app.route("/home", methods=['GET'])
+@app.route("/home", methods=['GET','POST'])
 def home_page():
 	themes = []
 	cursor = conn.cursor()
@@ -387,6 +350,13 @@ def home_page():
 		album_name=cursor.fetchall()
 		#print("album_name :", album_name[0][0])
 		themes[i][5]= album_name[0][0] #album name
+		#print out comments under each photo
+		cursor.execute("select c.content, r.email from comments as c, registered_users as r where c.photo_id=%s and c.user_id",t[i][0])
+		current_comm=cursor.fetchall()
+		if current_comm != ():
+			themes[i][6]=current_comm
+		else:
+			themes[i][6]=current_comm
 	return render_template('home.html', result = themes,base64=base64)
 
 
