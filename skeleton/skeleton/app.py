@@ -203,15 +203,15 @@ def protected():
 
 
 # see photos uploaded by the users that's tagged with the <tagName>
-@app.route('/<tagName>/tag', methods=['GET'])
+@app.route('private_tagged_photos/<tagName>', methods=['GET'])
 @flask_login.login_required
-def personal_tagged_photos(tagName):
+def private_tagged_photos(tagName):
 	cursor=conn.cursor()
 	uid=getUserIdFromEmail(flask_login.current_user.id)
-	cursor.execute("SELECT photo_id FROM Photo_has_tags as pht, Photos as p WHERE pht.photo_id=p.photo_id and user_id=%s and tag_name=%s",(uid, tagName))
+	cursor.execute("SELECT photo_id FROM Photo_has_tags as pht, Photos as p WHERE user_id=%s and tag_name=%s and pht.photo_id=p.photo_id",(uid, tagName))
 	tag_photos = cursor.fetchall()
 
-	return render_template('private_tagged_photos.html', name=flask_login.current_user.id, message="See all your '%s' photo", photos=tag_photos)
+	return render_template('private_tagged_photos.html', name=uid, message="See all your '%s' photo", photos=tag_photos)
 
 # see all tags that the user has
 @app.route('/user_tags', methods=['GET'])

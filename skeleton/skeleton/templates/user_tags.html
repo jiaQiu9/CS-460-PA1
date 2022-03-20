@@ -47,7 +47,10 @@
     {% if tags %}
     <ul>
         {% for tag in tags %}
-            <li> {{tag[0]}}</li>
+            <li>{{tag[0]}}</li>
+            <!-- <li > <a href= "{{ url_for('tag', tagName={{tag[0]}}) }}">{{tag[0]}}</a> </li> -->
+            <!-- <a href= {{ url_for('personal_tagged_photos', tagName={{tag[0]}} ) }}></a>>{{tag[0]}}</a> -->
+            
 
         {% endfor %}
     </ul>
