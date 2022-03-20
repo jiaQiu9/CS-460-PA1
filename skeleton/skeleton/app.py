@@ -399,10 +399,15 @@ def list_friends():
 	uid=getUserIdFromEmail(flask_login.current_user.id)
 	cursor=conn.cursor()
 	cursor.execute("SELECT friend_id FROM Friends_list WHERE owner_id=%s",uid)
-	
-	if cursor.fetchall():
-		freinds_list=cursor.fetchall()
-		return render_template('friends_list.html', list=freinds_list, name=flask_login.current_user.id)
+	friends_list=cursor.fetchall()
+	if friends_list != ():
+		friends_email=[]
+		for i in friends_list:
+			cursor.execute("select email from registered_users where user_id = %s",i[0])
+			friends_username=cursor.fetchall()
+			if friends_username != ():
+				friends_email.append(friends_username[0])
+		return render_template('friendslist.html', list=friends_email, name=flask_login.current_user.id)
 	
 	return render_template('friendslist.html', name=flask_login.current_user.id)
 
@@ -421,9 +426,10 @@ def add_friends():
 			print("friend id",friend_id[0][0])
 			if friend_id[0][0] != uid:
 				print("friend list ", friend_id, uid)
-				cursor.execute('''INSERT INTO friends_list (owner_id, friend_id) VALUES (%s, %s )''',(uid, friend_id))
+				friendid=friend_id[0][0]
+				cursor.execute('''INSERT INTO friends_list (owner_id, friend_id) VALUES (%s, %s )''',(uid, friendid))
 				conn.commit()
-				return render_template('friendslist.html',name=flask_login.current_user.id)
+				return render_template('home.html', message="friend was successfully added")
 		else:
 			return render_template('add_friend.html',name=flask_login.current_user.id, message="The user is not in the system.")
 	return render_template('add_friend.html',name=flask_login.current_user.id)
