@@ -9,6 +9,7 @@
 # see links for further understanding
 ###################################################
 
+from tkinter import Variable
 from unittest import result
 import flask
 from flask import Flask, Response, request, render_template, redirect, url_for
@@ -313,6 +314,54 @@ def photos_in_album(variable):
 
 
 
+# display comments of the image and be able to insert comments
+@app.route("/<variable>/disp_post_comt",methods=['GET','POST'])
+@flask_login.login_required
+def disp_post_comt(variable):
+	print("photo id in display post commment ", variable)
+	# themes=[]
+	cursor=conn.cursor()
+	uid=getUserIdFromEmail(flask_login.current_user.id)
+	# cursor.execute("SELECT r.email, c.content, c.com_date FROM comments as c,registered_users as r WHERE photo_id=%s and c.user_id=r.user_id",variable)
+	# t=cursor.fetchall()
+	cursor.execute("SELECT user_id,imgdata FROM photos WHERE photo_id=%s",variable)
+	photo=cursor.fetchall()
+	
+	cursor.execute("SELECT email FROM registered_users WHERE user_id=%s",uid)
+	uemail=cursor.fetchall()
+	print("user id for display com ",uemail[0][0])
+	# print("photo comments data ",t)
+	print("user id for photo ", photo[0][0])
+	print("current uid ",uid)
+	return render_template("imag_comt.html", cuid=uid, owner=variable,user_i=uemail[0][0], photo_id=variable, photo=photo, message="Insert comments for this image", base64=base64)
+	
+
+# inserting comment to photo
+@app.route('/insert_comment',methods=['GET',"POST"])
+def insert_comment():
+
+	if request.method=='POST':
+		comment_text=request.form.get('inscom')
+		print('inscom ', comment_text)
+		user_id=request.form.get('user_id')
+		print('user id in inser comment',user_id)
+		photo_id=request.form.get('photo_id')
+		print("photo id ",photo_id)
+
+		ph_owner=request.form.get('owner')
+		print("photo owner :",ph_owner)
+
+
+		cursor = conn.cursor()
+		date=datetime.date.today()
+		if ph_owner == user_id:
+			return render_template("home.html", message="you cannot comment your own photo")
+		else:
+			cursor.execute("INSERT INTO comments (user_id, photo_id, content, com_date) VALUES (%s,%s,%s,%s)", (user_id,photo_id,comment_text,date))
+			conn.commit()
+			
+			return render_template("home.html", message="Comment was added")
+	
 
 #begin photo uploading code
 # photos uploaded using base64 encoding so they can be directly embeded in HTML
@@ -415,8 +464,9 @@ def home_page():
 		#print("album_name :", album_name[0][0])
 		themes[i][5]= album_name[0][0] #album name
 		#print out comments under each photo
-		cursor.execute("select c.content, r.email from comments as c, registered_users as r where c.photo_id=%s and c.user_id",t[i][0])
+		cursor.execute("select c.content, r.email from comments as c, registered_users as r where c.photo_id=%s and c.user_id=r.user_id",t[i][0])
 		current_comm=cursor.fetchall()
+		print("comment user and comment ", current_comm)
 		if current_comm != ():
 			themes[i][6]=current_comm
 		else:

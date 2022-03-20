@@ -69,10 +69,15 @@
     <li>Photo_id: {{photo[0]}}<br>
       album_name:{{photo[5]}}<br>
       caption: {{photo[4]}} <br>
-      <img src='data:image/jpg;base64, {{ base64.b64encode(photo[3]).decode("ascii") }}' width="50%" height="50%" />
+
+      <!-- image as hyperlink -->
+      <a href="{{ url_for('disp_post_comt', variable=photo[0]) }}"> <img src='data:image/jpg;base64, {{ base64.b64encode(photo[3]).decode("ascii") }}' width="50%" height="50%" />
+      </a>
+     
+
       <br>
       {% for comments in photo[6] %}
-        {{comments[0]}} - user: {{[comments[1]]}}
+        {{comments[0]}} - user: {{comments[1]}}<br>
       {% endfor %}
 
     </li>
