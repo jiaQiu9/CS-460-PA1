@@ -209,26 +209,34 @@ def private_tagged_photos(variable):
 	themes = []
 	cursor=conn.cursor()
 	uid=getUserIdFromEmail(flask_login.current_user.id)
-	cursor.execute("SELECT p.photo_id, p.imgdata, p.caption, p.album_id FROM Photo_has_tags as pht, Photos as p WHERE pht.photo_id=p.photo_id and user_id=%s and tag_name=%s",(uid, variable))
-	
-	t = cursor.fetchall()
-	for i in range(len(t)):
-		#print("album name")
-		themes.append({})
-		themes[i][0] = t[i][0] #photo_id
-		themes[i][1] = t[i][1] #img date
-		themes[i][2] = t[i][2] #caption
-		themes[i][3] = t[i][3] #album_id
-	
-	cursor.execute("SELECT album_name FROM Albums WHERE album_id=%s",t[i][3])
-	album_name=cursor.fetchall()
-	themes[i][4]= album_name[0][0] #album name
+	try:
+		cursor.execute("SELECT p.photo_id, p.imgdata, p.caption, p.album_id FROM Photo_has_tags as pht, Photos as p WHERE pht.photo_id=p.photo_id and user_id=%s and tag_name=%s",(uid, variable))
+	except:
+		print("\nwannna see progress")
+		cursor.execute("SELECT p.photo_id, p.imgdata, p.caption, p.album_id \
+						FROM Photos as p \
+						MINUS\
+						SELECT p.photo_id, p.imgdata, p.caption, p.album_id \
+						FROM Photo_has_tags as pht, Photos as p \
+						WHERE pht.photo_id=p.photo_id")
 
-	
-	print("\ntheme has", str(len(themes)), "rows and", str(len(themes[0])), "columns.\n")
-	print(themes[0][0])
-	
-	return render_template('private_tagged_photos.html', user=uid, tag=variable, result=themes, base64=base64)
+	t = cursor.fetchall()
+	if len(t) != 0:
+		for i in range(len(t)):
+			#print("album name")
+			themes.append({})
+			themes[i][0] = t[i][0] #photo_id
+			themes[i][1] = t[i][1] #img date
+			themes[i][2] = t[i][2] #caption
+			themes[i][3] = t[i][3] #album_id
+		
+		cursor.execute("SELECT album_name FROM Albums WHERE album_id=%s",t[i][3])
+		album_name=cursor.fetchall()
+		themes[i][4]= album_name[0][0] #album name
+		return render_template('private_tagged_photos.html', user=uid, tag=variable, result=themes, base64=base64)
+
+	else:
+		return render_template('private_tagged_photos.html', user=uid, tag=variable, result=themes, base64=base64)
 
 # see all tags that the user has
 @app.route('/user_tags', methods=['GET'])

@@ -54,6 +54,7 @@
             <li > <a href= "{{ url_for('private_tagged_photos', variable=tag[0]) }}">{{tag[0]}}</a> </li>
 
         {% endfor %}
+        <li > <a href= "{{ url_for('private_tagged_photos', variable='null') }}">See your untagged Photos</a> </li>
     </ul>
     {% else %}
     <h3> You have no tags.</h3>
