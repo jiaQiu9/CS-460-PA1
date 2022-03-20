@@ -200,8 +200,10 @@ def protected():
 	all_album_name=cursor.fetchall()
 	cursor.execute("SELECT album_id, album_name FROM Albums WHERE user_id=%s",uid)
 	all_albums=cursor.fetchall()
+	cursor.execute("SELECT contribution from registered_users WHERE user_id=%s",uid)
+	contrib=cursor.fetchall()
 
-	return render_template('hello.html', name=flask_login.current_user.id, albums=all_albums, photos=themes,base64=base64)
+	return render_template('hello.html', name=flask_login.current_user.id, score=contrib, albums=all_albums, photos=themes,base64=base64)
 
 
 

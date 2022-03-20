@@ -69,8 +69,8 @@
   {% endif %}
   <br>
   {% if albums %}
+  <h3> Album list:</h3>
   <ul>
-    <h3> Album list:</h3>
     {% for album in albums %}
     <li>  <a href= "{{ url_for('photos_in_album', variable=album[0]) }}">{{album[1]}}</a>  </li>
     {% endfor %}
@@ -78,6 +78,12 @@
   {%else%}
   <h3> You have no album!</h3>
   {% endif %}
+  <br>
+
+
+  <h4> Your contribution score is {{score[0][0]}}. </h4>
+  <br>
+  <br>
 
   {% if photos %}
   <h2> Here are all your photos</h2>
@@ -121,8 +127,8 @@
     /* making the background to the specific color in hex */
     background-color: #212121;
     color: White;
-
   }
+  h1 {text-align: center;}
 </style>
 
 </html>
