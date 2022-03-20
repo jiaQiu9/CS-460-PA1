@@ -430,7 +430,7 @@ def home_page():
 @app.route("/all_photos", methods=['GET'])
 def all_photos():
 	cursor = conn.cursor()
-	cursor.execute("SELECT P.photo_id, R.email, A.album_name, P.imgdata, P.caption \
+	cursor.execute("SELECT P.photo_id, R.email, A.album_name, P.imgdata, P.caption\
 					FROM Photos as P, Albums as A, Registered_Users as R\
 					WHERE P.album_id=A.album_id and P.user_id=R.user_id")
 	t = cursor.fetchall()
@@ -444,6 +444,9 @@ def all_photos():
 		themes[i][2] = t[num-i][2] #album name
 		themes[i][3] = t[num-i][3] #img data
 		themes[i][4] = t[num-i][4] #caption
+		#tags
+		cursor.execute("SELECT pht.tag_name FROM photo_has_tags as pht WHERE pht.photo_id=%s", themes[i][0])
+		themes[i][5] = cursor.fetchall()
 
 		#print out comments under each photo
 		cursor.execute("select c.content, r.email from comments as c, registered_users as r where c.photo_id=%s and c.user_id",t[num-i][0])

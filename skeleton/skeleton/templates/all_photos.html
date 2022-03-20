@@ -73,7 +73,16 @@
 
       User: {{photo[1]}}<br>
       Album:{{photo[2]}}<br>
-      {{photo[4]}} <br>
+
+      Tag: {%if photo[5]%}
+      {% for tag in photo[5] %}
+        <a href= "{{ url_for('private_tagged_photos', variable=tag[0]) }}">{{tag[0]}}</a>     
+        {% endfor %}
+      {%else%}
+        (untagged picture)
+      {%endif%}<br>
+
+      Caption: {{photo[4]}} <br>
       <img src='data:image/jpg;base64, {{ base64.b64encode(photo[3]).decode("ascii") }}' width="35%" height="35%" />
       <br>
       {% for comments in photo[6] %}
