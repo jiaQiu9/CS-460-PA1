@@ -64,7 +64,7 @@
   {% endif %}
   <title>Photoshare</title>
   {% if name %}
-  <h1>Hello {{ name }}!</h1>
+  <h1> Hello {{ name }}!</h1>
 
   {% endif %}
   <br>
@@ -76,15 +76,26 @@
     {% endfor %}
   </ul>
   {%else%}
-  <h3>You have no album!</h3>
+  <h3> You have no album!</h3>
   {% endif %}
 
   {% if photos %}
-  <h2>Here are all your photos</h2>
+  <h2> Here are all your photos</h2>
   <ul>
     {% for photo in photos %}
     <li> Album_name: {{photo[5]}}<br>
       Caption: {{photo[4]}}<br>
+
+      Tags: 
+      {% if photo[6]%}
+        {% for tag in photo[6] %}
+        <a href= "{{ url_for('private_tagged_photos', variable=tag[0]) }}">{{tag[0]}}</a>     
+        {% endfor %}
+      {%else%}
+        (untagged picture)
+      {%endif%}
+      <br>
+
       <img src='data:image/jpg;base64, {{ base64.b64encode(photo[3]).decode("ascii") }}' width="50%" height="50%" />
       <br>
       <br>

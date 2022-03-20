@@ -180,27 +180,26 @@ def protected():
 	cursor.execute("SELECT photo_id, user_id, album_id, imgdata, caption FROM Photos WHERE user_id=%s ",(uid))
 	t = cursor.fetchall()
 	for i in range(len(t)):
-		#print(t[i][2])
 		themes.append({})
 		
-		themes[i][0] = t[i][0]
-		themes[i][1] = t[i][1]
-		
-		themes[i][2] = t[i][2]
-		themes[i][3] = t[i][3]
-		themes[i][4] = t[i][4]
-		#print("abum_id: ",t[i][2])
+		themes[i][0] = t[i][0] #photo_id
+		themes[i][1] = t[i][1] #user_id
+		themes[i][2] = t[i][2] #album_id
+		themes[i][3] = t[i][3] #imgdata
+		themes[i][4] = t[i][4] #caption
+
 		cursor.execute("SELECT album_name FROM Albums WHERE album_id=%s",t[i][2])
 		album_name=cursor.fetchall()
-		#print("album_name :")
 		themes[i][5]= album_name[0][0]
+		
+		cursor.execute("SELECT pht.tag_name FROM Photo_has_tags as pht, photos AS p \
+						WHERE pht.photo_id=p.photo_id and p.user_id=%s and p.photo_id=%s", (uid, t[i][0]))
+		themes[i][6]=cursor.fetchall()
+
 	cursor.execute("SELECT DISTINCT album_name FROM Albums WHERE user_id=%s",uid)
 	all_album_name=cursor.fetchall()
-	#print("album name of the current user",all_album_name[0][0])
-
 	cursor.execute("SELECT album_id, album_name FROM Albums WHERE user_id=%s",uid)
 	all_albums=cursor.fetchall()
-	#print("\nnumber of albums:", len(all_albums), "\n")
 
 	return render_template('hello.html', name=flask_login.current_user.id, albums=all_albums, photos=themes,base64=base64)
 
@@ -226,45 +225,58 @@ def private_tagged_photos(variable):
 	themes = []
 	cursor=conn.cursor()
 	uid=getUserIdFromEmail(flask_login.current_user.id)
-	try:
-		cursor.execute("SELECT p.photo_id, p.imgdata, p.caption, p.album_id FROM Photo_has_tags as pht, Photos as p WHERE pht.photo_id=p.photo_id and user_id=%s and tag_name=%s",(uid, variable))
-	except:
-		print("\nwannna see progress")
-		cursor.execute("SELECT p.photo_id, p.imgdata, p.caption, p.album_id \
-						FROM Photos as p \
-						MINUS\
-						SELECT p.photo_id, p.imgdata, p.caption, p.album_id \
-						FROM Photo_has_tags as pht, Photos as p \
-						WHERE pht.photo_id=p.photo_id")
-
+	cursor.execute("SELECT p.photo_id, p.imgdata, p.caption, p.album_id \
+					FROM Photo_has_tags as pht, Photos as p \
+					WHERE pht.photo_id=p.photo_id and user_id=%s and tag_name=%s",(uid, variable))
 	t = cursor.fetchall()
-	if len(t) != 0:
+
+	if len(t) == 0:
+		cursor.execute("SELECT p.photo_id \
+						FROM Photos as p \
+						WHERE p.photo_id NOT IN\
+						(SELECT p.photo_id FROM Photos as p, Photo_has_tags as pht\
+						WHERE pht.photo_id=p.photo_id)")
+		t = cursor.fetchall()
 		for i in range(len(t)):
-			#print("album name")
+			themes.append({})
+			themes[i][0] = t[i][0] #photo_id
+			#img date
+			cursor.execute("SELECT imgdata FROM photos AS p WHERE p.photo_id=%s",t[i][0])
+			themes[i][1]= cursor.fetchall()[0][0]
+			#caption
+			cursor.execute("SELECT caption FROM photos AS p WHERE p.photo_id=%s",t[i][0])
+			themes[i][2]= cursor.fetchall()[0][0]
+			#album_id
+			cursor.execute("SELECT album_id FROM photos AS p WHERE p.photo_id=%s",t[i][0])
+			themes[i][3]= cursor.fetchall()[0][0]
+			#album name
+			cursor.execute("SELECT album_name FROM Albums WHERE album_id=%s",themes[i][3])
+			themes[i][4]= cursor.fetchall()[0][0] 
+
+	else:
+		for i in range(len(t)):
 			themes.append({})
 			themes[i][0] = t[i][0] #photo_id
 			themes[i][1] = t[i][1] #img date
 			themes[i][2] = t[i][2] #caption
-			themes[i][3] = t[i][3] #album_id
-		
-		cursor.execute("SELECT album_name FROM Albums WHERE album_id=%s",t[i][3])
-		album_name=cursor.fetchall()
-		themes[i][4]= album_name[0][0] #album name
-		return render_template('private_tagged_photos.html', user=uid, tag=variable, result=themes, base64=base64)
-
-	else:
-		return render_template('private_tagged_photos.html', user=uid, tag=variable, result=themes, base64=base64)
+			themes[i][3] = t[i][3] #album_id	
+			cursor.execute("SELECT album_name FROM Albums WHERE album_id=%s",t[i][3])
+			album_name=cursor.fetchall()
+			themes[i][4]= album_name[0][0] #album name
+	return render_template('private_tagged_photos.html', user=uid, tag=variable, result=themes, base64=base64)
 
 
 # see photos uploaded by the users that's tagged with the <tagName>
-@app.route('/<variable>/private_tagged_photos', methods=['GET'])
+@app.route('/<variable>/public_tagged_photos', methods=['GET','POST'])
 def public_tagged_photos(variable):
 	themes = []
 	cursor=conn.cursor()
+
 	try:
 		cursor.execute("SELECT p.imgdata, p.caption, a.album_name, r.email \
-						FROM Photos as p, Albums as a, Registered_users as r \
-						WHERE p.album_id=a.album_id and p.user_id=r.user_id and tag_name=%s",(variable))
+						FROM Photos as p, Albums as a, Registered_users as r, Photo_has_tags as pht \
+						WHERE pht.tag_name=%s and pht.photo_id=p.photo_id and \
+						p.album_id=a.album_id and p.user_id=r.user_id",(variable))
 		t = cursor.fetchall()
 		num = len(t) - 1
 		if len(t) != 0:
@@ -286,7 +298,7 @@ def public_tagged_photos(variable):
 def search_tag():
 	#The request method is POST (page is recieving data)
 	tag = flask.request.form['search']
-	return render_template('public_tagged_photos.html', variable = tag)
+	return public_tagged_photos(tag)
 
 
 # create album 
@@ -300,7 +312,6 @@ def create_album():
 		album_name=request.form.get('album_name')
 		cursor.execute("SELECT * FROM Albums WHERE album_name=%s",album_name)
 		result=cursor.fetchall()
-		print(cursor.rowcount)
 		if (cursor.rowcount == 0):
 			cursor.execute("INSERT INTO Albums (user_id, creation_date,album_name) VALUES (%s,%s,%s)",(uid,date, album_name))
 			conn.commit()
@@ -327,7 +338,6 @@ def photos_in_album(variable):
 	t = cursor.fetchall()
 	if len(t) != 0:
 		for i in range(len(t)):
-			#print("album name")
 			themes.append({})
 			themes[i][0] = t[i][0] #photo_id
 			themes[i][1] = t[i][1] #img date
@@ -363,13 +373,11 @@ def upload_file():
 		cursor.execute("SELECT album_id FROM  Albums WHERE album_name=%s",(album_name))
 		album_result=cursor.fetchall()
 		if (cursor.rowcount!=0):
-			print(uid,  album_result,  caption)
 			cursor.execute('''INSERT INTO Photos (user_id, album_id,imgdata, caption) VALUES (%s, %s, %s, %s )''' ,(uid,  album_result,photo_data,  caption))
 			cursor.execute("UPDATE Registered_Users AS R SET contribution = contribution + 1 WHERE R.user_id=%s", (uid))
 			conn.commit()
 			cursor.execute("SELECT photo_id FROM photos ORDER BY photo_id DESC LIMIT 1")
 			pid=cursor.fetchall()
-			print("\nwhen we upload the file, pid is:", pid,"\n")
 			return render_template('add_tags.html', photo=pid[0][0])
 			# return render_template('hello.html', name=flask_login.current_user.id, message='Photo uploaded!', photos=getUsersPhotos(uid),base64=base64)
 			# The method is GET so we return a  HTML form to upload the a photo.
@@ -417,16 +425,7 @@ def add_tags():
 @app.route("/home", methods=['GET','POST'])
 def home_page():
 	return render_template('home.html')
-	# if request.method==""
-	# if request.method=="POST":
-	# 	tag = request.form.get('tag')
 
-	# 	if request.form['btn'] == 'by date':
-	# 		return render_template('all_photos.html', tag=tag)
-	# 	# elif request.form['btn'] == 'Add and finish':
-	# 	# 	return render_template('hello.html')
-	# 	else:
-	# 		return render_template('home.html', tag=tag)
 
 @app.route("/all_photos", methods=['GET'])
 def all_photos():
@@ -482,14 +481,11 @@ def add_friends():
 	if request.method == 'POST':
 		uid=getUserIdFromEmail(flask_login.current_user.id)
 		email = request.form.get('email')
-		print("email ",email)
 		cursor=conn.cursor()
 		cursor.execute("SELECT user_id FROM registered_users WHERE email=%s",email)
 		friend_id=cursor.fetchall()
 		if friend_id != ():
-			print("friend id",friend_id[0][0])
 			if friend_id[0][0] != uid:
-				print("friend list ", friend_id, uid)
 				friendid=friend_id[0][0]
 				cursor.execute('''INSERT INTO friends_list (owner_id, friend_id) VALUES (%s, %s )''',(uid, friendid))
 				conn.commit()

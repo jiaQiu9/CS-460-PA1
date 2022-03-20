@@ -67,10 +67,11 @@
       <br>
 
 
-      <div id="content" class="center">
-        <form method="post" action="{{ url_for('search_tag') }}" class="center">
+      <div id="content">
+        <form method="post" action="{{ url_for('search_tag') }}" style="text-align:center;">
             <label for="search">Search by tag:</label>
-            <input type="submit" name="btn" value="photos by date" required="true" class="center"/>
+            <input type="text" name="search" required="true"/>
+            <input type="submit" name="btn" value="photos by date"/>
         </form>
       </div>
 
@@ -78,7 +79,7 @@
       <br>
       <a href= "{{ url_for('all_photos')}}"><p style="text-align:center"> Start to browse all photos! </p> </a> 
       <br>
-      <a href= "{{ url_for('top_tags')}}"><p style="text-align:center"> See top 10 popular tags </p> </a> 
+      <a href= "{{ url_for('top_tags')}}"><p style="text-align:center"> See treanding tags </p> </a> 
       <br>
       <a href= "{{ url_for('top_contributors')}}"><p style="text-align:center"> See top 10 contributors </p> </a> 
 
@@ -95,7 +96,6 @@
     /* making the background to the specific color in hex */
     background-color: #212121;
     color: White;
-
   }
 </style>
 

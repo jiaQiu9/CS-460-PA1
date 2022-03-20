@@ -19,13 +19,13 @@
     <!-- <a class="navbar-brand" href="#">Home</a> -->
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav">
         <span class="navbar-toggler-icon"></span>
-    </button>a
+    </button>
     <div class="collapse navbar-collapse" id="navbarNav">
 
         <!-- navigation bar options  -->
         <ul class="navbar-nav mr-auto">
             <li class="nav-item active">
-                <a class="nav-link" href="/home">Home <span class="sr-only">(current)</span></a>
+                <a class="nav-link" href="/home"> Home <span class="sr-only">(current)</span></a>
             </li>
             
         </ul>
@@ -45,23 +45,29 @@
 
 <body>
 
+    <br>
     <h1> {{message}}</h1>
     <br> 
+
+    <form method="post" action="{{ url_for('search_tag') }}" style="text-align:center;">
+        <label for="search">Search another tag:</label>
+        <input type="text" name="search" required="true"/>
+        <input type="submit" name="btn" value="photos by date"/>
+    </form>
+    <br>
+
     {% if result %}
     <ul>
         {% for photo in result%}
 
-        caption: {{photo[2]}} <br>
-        album: {{photo[4]}} <br>
-        <img src='data:image/jpg;base64, {{ base64.b64encode(photo[1]).decode("ascii") }}' width="50%" height="50%" />
+        Album: {{photo[2]}} <br>
+        User: {{photo[3]}} <br>
+        {{photo[1]}} <br>
+        <img src='data:image/jpg;base64, {{ base64.b64encode(photo[0]).decode("ascii") }}' width="50%" height="50%" />
         <br>
         <br>
-            
-
         {% endfor %}
     </ul>
-    {% else %}
-    <h3> No photos in this tag.</h3>
     {% endif %}
 </body>
 
