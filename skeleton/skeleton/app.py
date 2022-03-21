@@ -84,12 +84,52 @@ def new_page_function():
 def login():
 	if flask.request.method == 'GET':
 		return '''
+		<head>
+			<meta charset="utf-8">
+			<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+			
+			<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css"
+			integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+			<title>See your tags</title>
+		</head>
+
+		<nav class="navbar navbar-expand-md navbar-dark bg-dark">
+		<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+		</button>
+		
+		<div class="collapse navbar-collapse" id="navbarNav">
+			<ul class="navbar-nav mr-auto">
+				<li class="nav-item active">
+					<a class="nav-link" href="/home">Home <span class="sr-only">(current)</span></a>
+				</li>
+			</ul>
+
+			<ul class="navbar-nav">
+				<li class="nav-item">
+					<a class="nav-link" href="/profile">My Profile</a>
+				</li>
+				<li class="nav-item">
+					<a class="nav-link" href="/logout">Logout</a>
+				</li>
+			</ul>
+    	</div>
+		</nav>
+		<br>
+				<h1>Please log in:</h1>
+				<br>
+				<br>
 			   <form action='login' method='POST'>
 				<input type='text' name='email' id='email' placeholder='email'></input>
 				<input type='password' name='password' id='password' placeholder='password'></input>
 				<input type='submit' name='submit'></input>
 			   </form></br>
-		   <a href='/'>Home</a>
+
+		   <style>
+		   body {background-color: #212121; color: White;}
+		   h1 {text-align: center;}
+		   form {text-align: center;}.center {margin: auto;width: 50%;padding: 10px;}
+		   </style>
 			   '''
 	#The request method is POST (page is recieving data)
 	email = flask.request.form['email']
