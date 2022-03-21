@@ -47,13 +47,15 @@
 
     <h1>Friends list of {{name}} </h1>
     <br> 
+    <a class="nav-link" href="/friend_recommend">Need more friends?</a>
+    <br>
     {% if list %}
-    <ul>
+    <ol>
         {% for friend in list %}
             <li> {{friend[0]}}</li>
 
         {% endfor %}
-    </ul>
+    </ol>
     {% else %}
     <h3> No friends in your friends list.</h3>
     {% endif %}
@@ -79,4 +81,5 @@
   
   padding: 10px;
 }
+ol {display: table; margin: 0 auto;}
 </style>

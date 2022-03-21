@@ -603,6 +603,17 @@ def top_tags():
 
 
 
+@app.route("/friends_recomend", methods=['POST', 'GET'])
+@flask_login.login_required
+def friends_recomend():
+	uid=getUserIdFromEmail(flask_login.current_user.id)
+	email = request.form.get('email')
+	cursor.execute("SELECT friend_id from friends_list WHERE")
+	
+
+
+
+
 
 #default page
 @app.route("/", methods=['GET'])
