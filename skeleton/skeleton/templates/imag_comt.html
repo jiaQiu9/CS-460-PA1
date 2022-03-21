@@ -60,19 +60,21 @@
             <input type="text" name="inscom" required="required" /><br />
 
             
-            <input type="hidden" name="user_id" value="{{ cuid }}"> <br>
+            <input type="hidden" name="user_id" value="{{ cuid }}"> 
 
             
-            <input type="hidden" name="photo_id" value="{{ photo_id }}"> <br>
+            <input type="hidden" name="photo_id" value="{{ photo_id }}">
 
-            <input type="hidden" name="owner" value="{{ owner }}"><br>
-
+            <input type="hidden" name="owner" value="{{ owner }}">
+           
+            <p>Comments button:</p>
             <input type="submit" class="center"/>
         </form>
 
         <!-- for liking photos -->
-        <form method="POST" action="{{ url_for('like_photo') }}">
+        <form method="POST" action="{{ url_for('like_photo') }}" class="center">
             <input type="hidden" name="photo_id" value="{{ photo_id }}"> <br>
+            <p>Likes button:</p>
             <input type="submit" class="center">
 
         </form>

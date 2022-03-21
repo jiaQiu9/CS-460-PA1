@@ -126,15 +126,22 @@ def register():
 @app.route("/register", methods=['POST'])
 def register_user():
 	try:
+		fst_name=request.form.get('fst_name')
+		lst_name=request.form.get('lst_name')
 		email=request.form.get('email')
+		date_of_birth=request.form.get('date_of_birth')
+		hometown=request.form.get('hometown')
+		gender=request.form.get('gender')
 		password=request.form.get('password')
+
 	except:
 		print("couldn't find all tokens") #this prints to shell, end users will not see this (all print statements go to shell)
 		return flask.redirect(flask.url_for('register'))
 	cursor = conn.cursor()
 	test = isEmailUnique(email)
 	if test:
-		print(cursor.execute("INSERT INTO Registered_Users (email, passcode) VALUES ('{0}', '{1}')".format(email, password)))
+		print(cursor.execute("INSERT INTO Registered_Users (fst_name, lst_name, email, date_of_birth, hometown, gender,passcode, contribution) VALUES ('{0}', '{1}', '{2}', '{3}', '{4}' ,'{5}', '{6}' , 0)"\
+			.format(fst_name, lst_name, email, date_of_birth, hometown, gender, password)))
 		conn.commit()
 		#log user in
 		user = User()
@@ -362,19 +369,29 @@ def insert_comment():
 		else:
 			cursor.execute("INSERT INTO comments (user_id, photo_id, content, com_date) VALUES (%s,%s,%s,%s)", (user_id,photo_id,comment_text,date))
 			conn.commit()
+			cursor.execute('UPDATE registered_users SET contribution=contribution+1 WHERE user_id=%s',user_id)
+			conn.commit()
 			return render_template("home.html", message="Comment was added")
 
 #linking photo
 @app.route('/likes', methods=['GET','POST'])
 def like_photo():
-	if request.metho== "POST":
+	if request.method== "POST":
 		photo_id=request.form.get('photo_id')
 		uid=getUserIdFromEmail(flask_login.current_user.id)
 		cursor=conn.cursor()
-		cursor.execute("INSER INTO user_likes_photo (user_id, photo_id) VALUES (%s, %s)",(uid, photo_id))
-		conn.commit()
+		cursor.execute("SELECT * FROM user_likes_photo WHERE user_id=%s AND photo_id=%s", (uid, int(photo_id)) )
+		check_likes=cursor.fetchall()
+		print("check_likes ",check_likes)
+		if len(check_likes) ==0 :
+			cursor.execute("INSERT INTO user_likes_photo (user_id, photo_id) VALUES (%s, %s)",(uid, int(photo_id)))
+			conn.commit()
+			cursor.execute('UPDATE registered_users SET contribution=contribution+1 WHERE user_id=%s',uid)
+			conn.commit()
 		# need a render template
-		return render_template()
+			return render_template("home.html", message="The photo has been liked.")
+		else:
+			return render_template('home.html',message="You have already liked this photo.")
 
 # search comments
 @app.route('/search', methods=['POST','GET'])
@@ -388,7 +405,8 @@ def search_comments():
 					 ORDER BY COUNT(c.content) DESC ",comment)
 		lst_comment=cursor.fetchall()
 		print("lst of matched comments ", lst_comment)
-	return render_template('search_comment.html', list_of_comments=lst_comment)
+		return render_template('search_comment.html', list_of_comments=lst_comment)
+	return render_template('search_comment.html')
 
 #begin photo uploading code
 # photos uploaded using base64 encoding so they can be directly embeded in HTML
@@ -494,10 +512,15 @@ def home_page():
 		cursor.execute("select c.content, r.email from comments as c, registered_users as r where c.photo_id=%s and c.user_id=r.user_id",t[i][0])
 		current_comm=cursor.fetchall()
 		print("comment user and comment ", current_comm)
-		if current_comm != ():
-			themes[i][6]=current_comm
-		else:
-			themes[i][6]=current_comm
+		#for list of likes of each photo
+		cursor.execute("SELECT r.email FROM user_likes_photo as ulp, registered_users as r WHERE ulp.user_id=r.user_id AND photo_id=%s", t[i][0])
+		lst_likes=cursor.fetchall()
+	
+		themes[i][6]=current_comm
+		
+		themes[i][7]=lst_likes
+		print("lst likes ",lst_likes, " ", " photo_id: ",t[i][0])
+		
 	return render_template('home.html', result = themes,base64=base64)
 
 
