@@ -10,7 +10,7 @@
         integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
     <!-- name of the tab -->
     
-    <title>Create an account!</title>
+    <title>Search for comments</title>
 
 
 </head>
@@ -27,61 +27,54 @@
             <li class="nav-item active">
                 <a class="nav-link" href="/home">Home <span class="sr-only">(current)</span></a>
             </li>
-
         </ul>
-        <ul class="navbar-nav">
 
+        <ul class="navbar-nav">
             <li class="nav-item">
-                <a class="nav-link" href="/login">Login</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="/register">Register</a>
+                <a class="nav-link" href="/profile">My Profile</a>
             </li>
             <li class="nav-item">
                 <a class="nav-link" href="/logout">Logout</a>
             </li>
-
-
         </ul>
+        
     </div>
 </nav>
 
 
 
-{%if not supress%}
-<h1> Email already in use! Use another one or <a href="/login">login</a></h1>
-{% endif %}
-
 <body>
-    <div class="cetner">
-        <h1>Enter your information below</h1>
-    </div>
-    <div id="content" class="center">
-        <form method="post" action="{{ url_for('register_user') }}" class="center">
-            <label for="fst_name">Enter your first name:</label>
-            <input type='text' for="fstname" required="required" ><br>
+    {% if message %}
+       <h1>{{ message }}</h1> 
 
-            <label for="lst_name">Entere you last name:</label>
-            <input type="text" for="lst_name" required="required"><br>
+    {% endif %}
 
-            <label for="email">Enter your email:</label>
-            <input type="email" name="email"required="required" ><br />
+    <br>
+    <ul>
+        {% if list_of_comments %}
+            <h5>List of matched comments:</h5>
+            {% for comments in list_of_comments %}
 
-            <label for="date_of_birth">Enter your date of birth (YYYY-MM-DD):</label>
-            <input type="text" for="data_of_birth" required="required" ><br>
-
-            <label for="hometown">Enter your hometown:</label>
-            <input type='text' for="hometown" required="required" > <br>
-            
-            <label for="gender">Enter your gender:</label>
-            <input type='text' for="gender" required="required"> <br>
-
-            <label for="password">Enter password:</label>
-            <input type="password" name="password" required="required" ><br />
+                <li>Comments: "{{ comments[0] }}     "      - by user: {{ comments[1] }}</li> <br>
+            {% endfor %}
+        {% else %}
+            <h5> No matched comments in the system.</h5>
+        {% endif %}
+    </ul>
+    
+    <h4> Add comments: </h4>
+    <!-- the function to add comments -->
+    <div>
+        <form method="post" action="{{ url_for('search_comments') }}" class="center">
+            <label for="inscom">Enter comment:</label>
+            <input type="text" name="inscom" required="required"/><br />
 
             <input type="submit" class="center"/>
         </form>
     </div>
+
+
+
 </body>
 
 

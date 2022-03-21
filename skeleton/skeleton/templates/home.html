@@ -40,6 +40,11 @@
         </li>
 
         <li class="nav-item">
+          <a class="nav-link" href="/search">Search Comments</a>
+        </li>
+
+
+        <li class="nav-item">
           <a class="nav-link" href="/friendslist">Friends List</a>
         </li>
         <li class="nav-item">
@@ -62,20 +67,36 @@
   </nav>
   <br>
   <h1>Welcom to Photoshare</h1>
-
+  {% if message %}
+    <h2> {{ message }}</h2>
+  {% endif %}
   <ul>
     {% for photo in result %}
 
     <li>Photo_id: {{photo[0]}}<br>
+      Owner of photo: {{photo[1]}}<br>
       album_name:{{photo[5]}}<br>
       caption: {{photo[4]}} <br>
-      <img src='data:image/jpg;base64, {{ base64.b64encode(photo[3]).decode("ascii") }}' width="50%" height="50%" />
-      <br>
-      {% for comments in photo[6] %}
-        {{comments[0]}} - user: {{[comments[1]]}}
-      {% endfor %}
 
-    </li>
+      <!-- image as hyperlink -->
+      <a href="{{ url_for('disp_post_comt', variable=photo[0]) }}"> <img src='data:image/jpg;base64, {{ base64.b64encode(photo[3]).decode("ascii") }}' width="50%" height="50%" />
+      </a>
+     
+
+      <br>
+      <div>
+          <h4> Likes:</h4>
+          {% for likes in photo[7] %}
+            {{ likes[0] }}
+          {% endfor %}
+          <h4>Comments:</h4>
+          {% for comments in photo[6] %}
+            {{comments[0]}} - user: {{comments[1]}}<br>
+          {% endfor %}
+      </div>
+      
+
+    </li><br>
     {% endfor %}
   </ul>
 

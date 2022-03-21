@@ -9,6 +9,7 @@
 # see links for further understanding
 ###################################################
 
+from tkinter import Variable
 from unittest import result
 import flask
 from flask import Flask, Response, request, render_template, redirect, url_for
@@ -125,15 +126,22 @@ def register():
 @app.route("/register", methods=['POST'])
 def register_user():
 	try:
+		fst_name=request.form.get('fst_name')
+		lst_name=request.form.get('lst_name')
 		email=request.form.get('email')
+		date_of_birth=request.form.get('date_of_birth')
+		hometown=request.form.get('hometown')
+		gender=request.form.get('gender')
 		password=request.form.get('password')
+
 	except:
 		print("couldn't find all tokens") #this prints to shell, end users will not see this (all print statements go to shell)
 		return flask.redirect(flask.url_for('register'))
 	cursor = conn.cursor()
 	test = isEmailUnique(email)
 	if test:
-		print(cursor.execute("INSERT INTO Registered_Users (email, passcode) VALUES ('{0}', '{1}')".format(email, password)))
+		print(cursor.execute("INSERT INTO Registered_Users (fst_name, lst_name, email, date_of_birth, hometown, gender,passcode, contribution) VALUES ('{0}', '{1}', '{2}', '{3}', '{4}' ,'{5}', '{6}' , 0)"\
+			.format(fst_name, lst_name, email, date_of_birth, hometown, gender, password)))
 		conn.commit()
 		#log user in
 		user = User()
@@ -313,6 +321,92 @@ def photos_in_album(variable):
 
 
 
+# display comments of the image and be able to insert comments
+@app.route("/<variable>/disp_post_comt",methods=['GET','POST'])
+@flask_login.login_required
+def disp_post_comt(variable):
+	print("photo id in display post commment ", variable)
+	# themes=[]
+	cursor=conn.cursor()
+	uid=getUserIdFromEmail(flask_login.current_user.id)
+	# cursor.execute("SELECT r.email, c.content, c.com_date FROM comments as c,registered_users as r WHERE photo_id=%s and c.user_id=r.user_id",variable)
+	# t=cursor.fetchall()
+	cursor.execute("SELECT user_id,imgdata FROM photos WHERE photo_id=%s",variable)
+	photo=cursor.fetchall()
+	
+	cursor.execute("SELECT email FROM registered_users WHERE user_id=%s",uid)
+	uemail=cursor.fetchall()
+	print("user id for display com ",uemail[0][0])
+	# print("photo comments data ",t)
+	print("user id for photo ", photo[0][0])
+	print("current uid ",uid)
+	return render_template("imag_comt.html", cuid=uid, owner=photo[0][0],user_i=uemail[0][0], photo_id=variable, photo=photo, message="Insert comments for this image", base64=base64)
+	
+
+# inserting comment to photo
+@app.route('/insert_comment',methods=['GET',"POST"])
+def insert_comment():
+
+	if request.method=='POST':
+		comment_text=request.form.get('inscom')
+		print('inscom ', comment_text)
+		user_id=request.form.get('user_id')
+		print('user id in inser comment',user_id)
+		photo_id=request.form.get('photo_id')
+		print("photo id ",photo_id)
+
+		ph_owner=request.form.get('owner')
+		print("photo owner :",ph_owner)
+
+
+		cursor = conn.cursor()
+		date=datetime.date.today()
+		print("photo owner ", type(ph_owner) , " ",ph_owner)
+		print("current user ", type(user_id), " ", user_id )
+		print("photo owner == user id ", ph_owner == user_id)
+		if ph_owner == user_id:
+			return render_template("home.html", message="you cannot comment your own photo")
+		else:
+			cursor.execute("INSERT INTO comments (user_id, photo_id, content, com_date) VALUES (%s,%s,%s,%s)", (user_id,photo_id,comment_text,date))
+			conn.commit()
+			cursor.execute('UPDATE registered_users SET contribution=contribution+1 WHERE user_id=%s',user_id)
+			conn.commit()
+			return render_template("home.html", message="Comment was added")
+
+#linking photo
+@app.route('/likes', methods=['GET','POST'])
+def like_photo():
+	if request.method== "POST":
+		photo_id=request.form.get('photo_id')
+		uid=getUserIdFromEmail(flask_login.current_user.id)
+		cursor=conn.cursor()
+		cursor.execute("SELECT * FROM user_likes_photo WHERE user_id=%s AND photo_id=%s", (uid, int(photo_id)) )
+		check_likes=cursor.fetchall()
+		print("check_likes ",check_likes)
+		if len(check_likes) ==0 :
+			cursor.execute("INSERT INTO user_likes_photo (user_id, photo_id) VALUES (%s, %s)",(uid, int(photo_id)))
+			conn.commit()
+			cursor.execute('UPDATE registered_users SET contribution=contribution+1 WHERE user_id=%s',uid)
+			conn.commit()
+		# need a render template
+			return render_template("home.html", message="The photo has been liked.")
+		else:
+			return render_template('home.html',message="You have already liked this photo.")
+
+# search comments
+@app.route('/search', methods=['POST','GET'])
+def search_comments():
+	if request.method == "POST":
+		cursor=conn.cursor()
+		comment=request.form.get('inscom')
+		cursor.execute("SELECT c.content, r.email FROM comments as c, registered_users as r WHERE \
+			c.user_id=r.user_id AND c.content=%s\
+				 GROUP BY r.user_id \
+					 ORDER BY COUNT(c.content) DESC ",comment)
+		lst_comment=cursor.fetchall()
+		print("lst of matched comments ", lst_comment)
+		return render_template('search_comment.html', list_of_comments=lst_comment)
+	return render_template('search_comment.html')
 
 #begin photo uploading code
 # photos uploaded using base64 encoding so they can be directly embeded in HTML
@@ -415,12 +509,18 @@ def home_page():
 		#print("album_name :", album_name[0][0])
 		themes[i][5]= album_name[0][0] #album name
 		#print out comments under each photo
-		cursor.execute("select c.content, r.email from comments as c, registered_users as r where c.photo_id=%s and c.user_id",t[i][0])
+		cursor.execute("select c.content, r.email from comments as c, registered_users as r where c.photo_id=%s and c.user_id=r.user_id",t[i][0])
 		current_comm=cursor.fetchall()
-		if current_comm != ():
-			themes[i][6]=current_comm
-		else:
-			themes[i][6]=current_comm
+		print("comment user and comment ", current_comm)
+		#for list of likes of each photo
+		cursor.execute("SELECT r.email FROM user_likes_photo as ulp, registered_users as r WHERE ulp.user_id=r.user_id AND photo_id=%s", t[i][0])
+		lst_likes=cursor.fetchall()
+	
+		themes[i][6]=current_comm
+		
+		themes[i][7]=lst_likes
+		print("lst likes ",lst_likes, " ", " photo_id: ",t[i][0])
+		
 	return render_template('home.html', result = themes,base64=base64)
 
 

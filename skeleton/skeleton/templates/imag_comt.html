@@ -10,7 +10,7 @@
         integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
     <!-- name of the tab -->
     
-    <title>Create an account!</title>
+    <title>Image with comments</title>
 
 
 </head>
@@ -27,61 +27,62 @@
             <li class="nav-item active">
                 <a class="nav-link" href="/home">Home <span class="sr-only">(current)</span></a>
             </li>
-
         </ul>
-        <ul class="navbar-nav">
 
+        <ul class="navbar-nav">
             <li class="nav-item">
-                <a class="nav-link" href="/login">Login</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="/register">Register</a>
+                <a class="nav-link" href="/profile">My Profile</a>
             </li>
             <li class="nav-item">
                 <a class="nav-link" href="/logout">Logout</a>
             </li>
-
-
         </ul>
+        
     </div>
 </nav>
 
 
 
-{%if not supress%}
-<h1> Email already in use! Use another one or <a href="/login">login</a></h1>
-{% endif %}
-
 <body>
-    <div class="cetner">
-        <h1>Enter your information below</h1>
-    </div>
-    <div id="content" class="center">
-        <form method="post" action="{{ url_for('register_user') }}" class="center">
-            <label for="fst_name">Enter your first name:</label>
-            <input type='text' for="fstname" required="required" ><br>
+    <h1> {{ message }}</h1>
+    <br>
+    
+    <img src='data:image/jpg;base64, {{ base64.b64encode(photo[0][1]).decode("ascii") }}' width="50%" height="50%" />
+    <p> photo by user {{ user_i }}</p>
+    <br>
+    
+    <h4> Add comments: </h4>
+    <!-- the function to add comments -->
+    <div>
+        <!-- for inserting comments -->
+        <form method="post" action="{{ url_for('insert_comment') }}" class="center">
+            <label for="inscom">Enter comment:</label>
+            <input type="text" name="inscom" required="required" /><br />
 
-            <label for="lst_name">Entere you last name:</label>
-            <input type="text" for="lst_name" required="required"><br>
-
-            <label for="email">Enter your email:</label>
-            <input type="email" name="email"required="required" ><br />
-
-            <label for="date_of_birth">Enter your date of birth (YYYY-MM-DD):</label>
-            <input type="text" for="data_of_birth" required="required" ><br>
-
-            <label for="hometown">Enter your hometown:</label>
-            <input type='text' for="hometown" required="required" > <br>
             
-            <label for="gender">Enter your gender:</label>
-            <input type='text' for="gender" required="required"> <br>
+            <input type="hidden" name="user_id" value="{{ cuid }}"> 
 
-            <label for="password">Enter password:</label>
-            <input type="password" name="password" required="required" ><br />
+            
+            <input type="hidden" name="photo_id" value="{{ photo_id }}">
 
+            <input type="hidden" name="owner" value="{{ owner }}">
+           
+            <p>Comments button:</p>
             <input type="submit" class="center"/>
         </form>
+
+        <!-- for liking photos -->
+        <form method="POST" action="{{ url_for('like_photo') }}" class="center">
+            <input type="hidden" name="photo_id" value="{{ photo_id }}"> <br>
+            <p>Likes button:</p>
+            <input type="submit" class="center">
+
+        </form>
+
     </div>
+
+
+
 </body>
 
 
