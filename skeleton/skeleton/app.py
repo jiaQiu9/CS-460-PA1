@@ -366,7 +366,7 @@ def create_album():
 			cursor.execute("SELECT contribution from registered_users WHERE user_id=%s",uid)
 			contrib=cursor.fetchall()
 
-			return render_template('hello.html', score=contrib, name=flask_login.current_user.id,message=" Album create")
+			return render_template('hello.html', name=flask_login.current_user.id, message=" Album create")
 		else:
 			return render_template('album_create.html',message="The album name is already used by someone, enter another one.")
 	return render_template('album_create.html')	
@@ -406,29 +406,60 @@ def photos_in_album(variable):
 
 
 @app.route("/<variable>/delete_photo", methods=['POST', 'GET'])
+@flask_login.login_required
 def delete_photo(variable):
 	cursor=conn.cursor()
+	uid=getUserIdFromEmail(flask_login.current_user.id)
 	if request.method=='POST':
 		if request.form['btn']=="confirm":
+			cursor.execute("SELECT tag_name from photo_has_tags WHERE photo_id=%s",variable)
+			try:
+				tagName = str(cursor.fetchall()[0][0])
+				# update tag number
+				cursor.execute("UPDATE tags SET tag_num=tag_num-1 WHERE tag_name =%s",tagName)
+				conn.commit()
+			except: # picture is untagged
+				pass
+			# update table "photos"
 			cursor.execute("DELETE FROM Photos AS p WHERE p.photo_id=%s", variable)
+			# update contribution of the user
+			cursor.execute("UPDATE registered_users SET contribution=contribution-1 WHERE user_id=%s", uid)
 			conn.commit()
-			cursor.execute("UPDATE tags SET tag_num=tag_num-1 WHERE tag_name =\
-							(SELECT tag_name from photo_has_tags WHERE photo_id=%s)",variable)
-			conn.commit()
-			return render_template('hello.html', message="Deletion suceeded!")
+			return render_template('hello.html', message="Deletion suceeded")
+			
 		elif request.form['btn']=="cancel":
-			return render_template('hello.html', message="Deletion canceled!")
+			return render_template('hello.html', message="Deletion canceled")
+
 	return render_template('delete_photo.html', photo=variable, message="Welcome back")
 
 
 @app.route("/<variable>/delete_album", methods=['POST', 'GET'])
+@flask_login.login_required
 def delete_album(variable):
 	cursor=conn.cursor()
+	uid=getUserIdFromEmail(flask_login.current_user.id)
 	if request.method=='POST':
 		if request.form['btn']=="confirm":
+			cursor.execute("SELECT photo_id from photos WHERE album_id=%s",variable)
+			photos = cursor.fetchall()
+			for photo in photos:
+				pid = photo[0]
+				cursor.execute("SELECT tag_name from photo_has_tags WHERE photo_id=%s",pid)
+				tagName = str(cursor.fetchall()[0][0])
+				# update tag number
+				cursor.execute("UPDATE tags SET tag_num=tag_num-1 WHERE tag_name =%s",tagName)
+				conn.commit()
+				# update table "photos"
+				cursor.execute("DELETE FROM Photos AS p WHERE p.photo_id=%s", pid)
+				conn.commit()
+				# update contribution of the user
+				cursor.execute("UPDATE registered_users SET contribution=contribution-1 WHERE user_id=%s", uid)
+		
+			# update table "albums"
 			cursor.execute("DELETE FROM Albums AS a WHERE a.album_id=%s", variable)
 			conn.commit()
 			return render_template('hello.html', message="Deletion suceeded")
+
 		elif request.form['btn']=="cancel":
 			return render_template('hello.html', message="Deletion canceled")
 	return render_template('delete_album.html', album=variable, message="Welcome back")
@@ -441,7 +472,6 @@ def manage_albums():
 	uid=getUserIdFromEmail(flask_login.current_user.id)
 	cursor.execute("SELECT DISTINCT album_id, album_name FROM albums WHERE user_id=%s",(uid))
 	t = cursor.fetchall()
-	print("\nsee uid:", uid, "\nsee album num:", len(t))
 	return render_template('manage_albums.html', albums=t)
 
 
@@ -461,12 +491,20 @@ def upload_file():
 		album_name= request.form.get('album')
 		photo_data =imgfile.read()
 		cursor = conn.cursor()
+
 		cursor.execute("SELECT album_id FROM  Albums WHERE album_name=%s and user_id=%s",(album_name,uid))
 		album_result=cursor.fetchall()
 		if (cursor.rowcount!=0): # the input album is in the database
+		
 			cursor.execute('''INSERT INTO Photos (user_id, album_id,imgdata, caption) VALUES (%s, %s, %s, %s )''' ,(uid,  album_result,photo_data,  caption))
-			cursor.execute("UPDATE Registered_Users AS R SET contribution = contribution + 1 WHERE R.user_id=%s", (uid))
-			conn.commit()
+			print("\nAdd one point", uid)
+
+			cursor.execute("select contribution from Registered_Users as R WHERE R.user_id=%s", uid)
+			print("\nsee score:", cursor.fetchall())
+
+			# somehow contribution score is already updated
+			# cursor.execute("UPDATE Registered_Users AS R SET contribution = contribution WHERE R.user_id=%s", (uid))
+
 			cursor.execute("SELECT photo_id FROM photos ORDER BY photo_id DESC LIMIT 1")
 			pid=cursor.fetchall()
 			return render_template('add_tags.html', photo=pid[0][0])
