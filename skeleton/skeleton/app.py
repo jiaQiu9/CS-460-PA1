@@ -145,8 +145,13 @@ def login():
 			return flask.redirect(flask.url_for('protected')) #protected is a function defined in this file
 
 	#information did not match
-	return "<a href='/login'>Try again</a>\
-			</br><a href='/register'>or make an account</a>"
+	return "<br> <br> <br> <br> <br> <br> <br> <br>\
+			<h1><a href='/login'>Try again</a> </h> <br>\
+			</br><a href='/register'>or make an account</a>\
+			<style>\
+			body {background-color: #212121; color: White;}\
+		   	h1 {text-align: center;}.center {margin: auto;width: 50%;padding: 10px;}\
+			"
 
 @app.route('/logout')
 def logout():
@@ -352,7 +357,7 @@ def create_album():
 		uid = getUserIdFromEmail(flask_login.current_user.id)
 		date = datetime.date.today()
 		album_name=request.form.get('album_name')
-		cursor.execute("SELECT * FROM Albums WHERE album_name=%s",album_name)
+		cursor.execute("SELECT * FROM Albums WHERE album_name=%s",(album_name))
 		result=cursor.fetchall()
 		if (cursor.rowcount == 0):
 			cursor.execute("INSERT INTO Albums (user_id, creation_date,album_name) VALUES (%s,%s,%s)",(uid,date, album_name))
@@ -363,7 +368,7 @@ def create_album():
 
 			return render_template('hello.html', score=contrib, name=flask_login.current_user.id,message=" Album create")
 		else:
-			return render_template('album_create.html',message="The album name is already used, enter another one.")
+			return render_template('album_create.html',message="The album name is already used by someone, enter another one.")
 	return render_template('album_create.html')	
 	
 
@@ -407,6 +412,9 @@ def delete_photo(variable):
 		if request.form['btn']=="confirm":
 			cursor.execute("DELETE FROM Photos AS p WHERE p.photo_id=%s", variable)
 			conn.commit()
+			cursor.execute("UPDATE tags SET tag_num=tag_num-1 WHERE tag_name =\
+							(SELECT tag_name from photo_has_tags WHERE photo_id=%s)",variable)
+			conn.commit()
 			return render_template('hello.html', message="Deletion suceeded!")
 		elif request.form['btn']=="cancel":
 			return render_template('hello.html', message="Deletion canceled!")
@@ -431,8 +439,9 @@ def delete_album(variable):
 def manage_albums():
 	cursor=conn.cursor()
 	uid=getUserIdFromEmail(flask_login.current_user.id)
-	cursor.execute("SELECT DISTINCT A.album_id, A.album_name FROM albums as A, photos as P WHERE P.user_id=%s and P.album_id=A.album_id",(uid))
+	cursor.execute("SELECT DISTINCT album_id, album_name FROM albums WHERE user_id=%s",(uid))
 	t = cursor.fetchall()
+	print("\nsee uid:", uid, "\nsee album num:", len(t))
 	return render_template('manage_albums.html', albums=t)
 
 
@@ -452,7 +461,7 @@ def upload_file():
 		album_name= request.form.get('album')
 		photo_data =imgfile.read()
 		cursor = conn.cursor()
-		cursor.execute("SELECT album_id FROM  Albums WHERE album_name=%s",(album_name))
+		cursor.execute("SELECT album_id FROM  Albums WHERE album_name=%s and user_id=%s",(album_name,uid))
 		album_result=cursor.fetchall()
 		if (cursor.rowcount!=0): # the input album is in the database
 			cursor.execute('''INSERT INTO Photos (user_id, album_id,imgdata, caption) VALUES (%s, %s, %s, %s )''' ,(uid,  album_result,photo_data,  caption))

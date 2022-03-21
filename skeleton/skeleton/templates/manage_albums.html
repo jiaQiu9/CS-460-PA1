@@ -42,7 +42,7 @@
 
 
 <body>
-    <div class="cetner">
+    <div class="center">
         <h1>Do you want to delete any album?</h1>
         {%for album in albums%}
             <li> <a href= "{{ url_for('delete_album', variable=album[0]) }}">{{album[1]}}</a>  </li>
