@@ -10,7 +10,7 @@
         integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
     <!-- name of the tab -->
     
-    <title>Freinds List</title>
+    <title>Photoshare</title>
 
 
 </head>
@@ -25,7 +25,7 @@
         <!-- navigation bar options  -->
         <ul class="navbar-nav mr-auto">
             <li class="nav-item active">
-                <a class="nav-link" href="/home">Home <span class="sr-only">(current)</span></a>
+                <a class="nav-link" href="/home"> Home <span class="sr-only">(current)</span></a>
             </li>
             
         </ul>
@@ -33,9 +33,6 @@
             <li class="nav-item">
                 <a class="nav-link" href="/profile">My Profile</a>
             </li>
-            <li class="nav-item">
-                <a class="nav-link" href="/add_friends">Add Friends</a>
-              </li>
             <li class="nav-item">
                 <a class="nav-link" href="/logout">Logout</a>
             </li>
@@ -47,19 +44,22 @@
 
 
 <body>
-    <p>{{message}}</p>
-    <h1>Friends list of {{name}} </h1>
-    <br> 
-    <a class="nav-link" href="/friend_recommend">Need friends recommendation?</a>
-    {% if list %}
-    <ol>
-        {% for friend in list %}
-            <li> {{friend[0]}}</li>
 
+    <br>
+    <h1> {{message}}</h1>
+
+    {% if result %}
+    <ul>
+        {% for photo in result%}
+
+        Album: {{photo[2]}} <br>
+        User: {{photo[3]}} <br>
+        {{photo[1]}} <br>
+        <img src='data:image/jpg;base64, {{ base64.b64encode(photo[0]).decode("ascii") }}' width="50%" height="50%" />
+        <br>
+        <br>
         {% endfor %}
-    </ol>
-    {% else %}
-    <h3> No friends in your friends list.</h3>
+    </ul>
     {% endif %}
 </body>
 
@@ -83,6 +83,4 @@
   
   padding: 10px;
 }
-ol {display: table; margin: 0 auto;}
-p {text-align: center;}
 </style>

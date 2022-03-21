@@ -60,7 +60,7 @@
   <ol>
     {% for tag in list %}
 
-    <li> <a href= "{{ url_for('public_tagged_photos', variable=tag[0]) }}">{{tag[0]}}</a> </li>
+    <li> <a href= "{{ url_for('top_tagged_photos', variable=tag[0], top=[1]) }}">{{tag[0]}}</a> </li>
     {% endfor %}
   </ol>
 

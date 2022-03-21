@@ -328,7 +328,7 @@ def public_tagged_photos(variable):
 				themes[i][1] = t[num-i][1] #caption
 				themes[i][2] = t[num-i][2] #album_name
 				themes[i][3] = t[num-i][3] #user email
-			return render_template('public_tagged_photos.html', tag=variable, message="See all photos tagged {0}!".format(variable), result=themes, base64=base64)
+			return render_template('public_tagged_photos.html', tag=variable, message="See all photos tagged {0}.".format(variable), result=themes, base64=base64)
 		else:
 			return render_template('public_tagged_photos.html', tag=variable, message="Results not found. Try another tag.", result=themes, base64=base64)
 	except:
@@ -454,7 +454,7 @@ def upload_file():
 		cursor = conn.cursor()
 		cursor.execute("SELECT album_id FROM  Albums WHERE album_name=%s",(album_name))
 		album_result=cursor.fetchall()
-		if (cursor.rowcount!=0):
+		if (cursor.rowcount!=0): # the input album is in the database
 			cursor.execute('''INSERT INTO Photos (user_id, album_id,imgdata, caption) VALUES (%s, %s, %s, %s )''' ,(uid,  album_result,photo_data,  caption))
 			cursor.execute("UPDATE Registered_Users AS R SET contribution = contribution + 1 WHERE R.user_id=%s", (uid))
 			conn.commit()
@@ -462,8 +462,8 @@ def upload_file():
 			pid=cursor.fetchall()
 			return render_template('add_tags.html', photo=pid[0][0])
 			# The method is GET so we return a  HTML form to upload the a photo.
-		else:
-			return render_template('upload.html')
+		else: # album not in user's database
+			return render_template('upload.html', message="You don't have this album! Please enter an album that you have.")
 	else:
 		return render_template('upload.html')
 #end photo uploading code
@@ -571,14 +571,23 @@ def add_friends():
 		cursor=conn.cursor()
 		cursor.execute("SELECT user_id FROM registered_users WHERE email=%s",email)
 		friend_id=cursor.fetchall()
-		if friend_id != ():
-			if friend_id[0][0] != uid:
+		if friend_id != (): #if friend_id exists in database
+			if friend_id[0][0] != uid: #if the user is not adding themself
 				friendid=friend_id[0][0]
-				cursor.execute('''INSERT INTO friends_list (owner_id, friend_id) VALUES (%s, %s )''',(uid, friendid))
-				conn.commit()
-				return render_template('home.html', message="friend was successfully added")
+				try: 
+					cursor.execute('''INSERT INTO friends_list (owner_id, friend_id) VALUES (%s, %s )''',(uid, friendid))
+					conn.commit()
+					cursor.execute("SELECT R.email FROM Friends_list as FL, registered_users as R WHERE FL.friend_id=R.user_id and owner_id=%s",uid)
+					friends_list=cursor.fetchall()
+					return render_template('friendslist.html', list=friends_list, name=flask_login.current_user.id, message="Friend was successfully added.")
+				except: # if the friend is already added
+					cursor.execute("SELECT R.email FROM Friends_list as FL, registered_users as R WHERE FL.friend_id=R.user_id and owner_id=%s",uid)
+					friends_list=cursor.fetchall()
+					return render_template('friendslist.html', list=friends_list, name=flask_login.current_user.id, message="You already added this friend.")
+			else:
+				return render_template('add_friend.html', name=flask_login.current_user.id, message="You can't add yourself as a friend.")
 		else:
-			return render_template('add_friend.html',name=flask_login.current_user.id, message="The user is not in the system.")
+			return render_template('add_friend.html', name=flask_login.current_user.id, message="The user is not in the system.")
 	return render_template('add_friend.html',name=flask_login.current_user.id)
 
 
@@ -601,6 +610,30 @@ def top_tags():
 	
 	return render_template('top_tags.html')
 
+@app.route("/<variable>/top_tagged_photos", methods=['POST', 'GET'])
+def top_tagged_photos(variable):
+	themes = []
+	cursor=conn.cursor()
+	try:
+		cursor.execute("SELECT p.imgdata, p.caption, a.album_name, r.email \
+						FROM Photos as p, Albums as a, Registered_users as r, Photo_has_tags as pht \
+						WHERE pht.tag_name=%s and pht.photo_id=p.photo_id and \
+						p.album_id=a.album_id and p.user_id=r.user_id",(variable))
+		t = cursor.fetchall()
+		num = len(t) - 1
+		if len(t) != 0:
+			for i in range(len(t)):
+				themes.append({})
+				themes[i][0] = t[num-i][0] #img data
+				themes[i][1] = t[num-i][1] #caption
+				themes[i][2] = t[num-i][2] #album_name
+				themes[i][3] = t[num-i][3] #user email
+			return render_template('top_tagged_photos.html', tag=variable, message="See all photos tagged {0}.".format(variable), result=themes, base64=base64)
+		else:
+			return render_template('top_tagged_photos.html', tag=variable, message="Results not found. Try another tag.", result=themes, base64=base64)
+	except:
+		return render_template('top_tagged_photos.html', tag=variable, message="Results not found. Try another tag.", result=themes, base64=base64)
+
 
 
 @app.route("/friends_recomend", methods=['POST', 'GET'])
@@ -608,10 +641,10 @@ def top_tags():
 def friends_recomend():
 	uid=getUserIdFromEmail(flask_login.current_user.id)
 	email = request.form.get('email')
-	cursor.execute("SELECT friend_id from friends_list WHERE")
-	
-
-
+	cursor.execute("SELECT friend_id from friends_list WHERE owner_id=%s", uid)
+	friends = cursor.fetchall()
+	#store friends of friends: 1 col for fof_id, 1 col for appear frequency
+	fof = [] 
 
 
 

@@ -43,12 +43,13 @@
 
 <body>
     <div class="cetner">
+        <p>{{message}}</p>
         <h1>Enter your friend's email below</h1>
     </div>
     <div id="content" class="center">
         <form method="post" action="{{ url_for('add_friends') }}" class="center">
             <label for="email">Friend's email:</label>
-            <input type="email" name="email" /><br />
+            <input type="email" name="email" required="true"/><br />
             <input type="submit" class="center"/>
         </form>
     </div>
@@ -74,4 +75,5 @@
   
   padding: 10px;
 }
+p{text-align:center;}
 </style>
