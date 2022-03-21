@@ -10,7 +10,7 @@
         integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
     <!-- name of the tab -->
     
-    <title>Friends List</title>
+    <title>Friend Recommendations</title>
 
 
 </head>
@@ -34,6 +34,9 @@
                 <a class="nav-link" href="/profile">My Profile</a>
             </li>
             <li class="nav-item">
+                <a class="nav-link" href="/friendslist">Friends List</a>
+              </li>
+            <li class="nav-item">
                 <a class="nav-link" href="/add_friends">Add Friends</a>
               </li>
             <li class="nav-item">
@@ -47,19 +50,23 @@
 
 
 <body>
-    <p>{{message}}</p>
-    <h1>Friends list of {{name}} </h1>
+    <br>
+    <h1> {{message}} </h1>
     <br> 
-    <a class="nav-link" href="{{ url_for('friends_recommend') }}">Need friends recommendation?</a>
-    {% if list %}
+    {% if recom %}
     <ol>
-        {% for friend in list %}
+        {% for friend in recom %}
             <li> {{friend[0]}}</li>
-
         {% endfor %}
     </ol>
     {% else %}
-    <h3> No friends in your friends list.</h3>
+    <br>
+    <br>
+    <p> <a href="{{ url_for('add_friends') }}">Click</a> to add friends. 
+        <br>
+        <br>
+        <a href="\friendslist">Return</a> back to friends list. 
+    </p>
     {% endif %}
 </body>
 
@@ -80,7 +87,6 @@
     .center {
   margin: auto;
   width: 50%;
-  
   padding: 10px;
 }
 ol {display: table; margin: 0 auto;}

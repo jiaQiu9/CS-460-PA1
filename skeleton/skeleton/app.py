@@ -502,8 +502,7 @@ def upload_file():
 			cursor.execute("select contribution from Registered_Users as R WHERE R.user_id=%s", uid)
 			print("\nsee score:", cursor.fetchall())
 
-			# somehow contribution score is already updated
-			# cursor.execute("UPDATE Registered_Users AS R SET contribution = contribution WHERE R.user_id=%s", (uid))
+			cursor.execute("UPDATE Registered_Users AS R SET contribution = contribution+1 WHERE R.user_id=%s", (uid))
 
 			cursor.execute("SELECT photo_id FROM photos ORDER BY photo_id DESC LIMIT 1")
 			pid=cursor.fetchall()
@@ -683,15 +682,33 @@ def top_tagged_photos(variable):
 
 
 
-@app.route("/friends_recomend", methods=['POST', 'GET'])
+@app.route("/friends_recommend", methods=['POST', 'GET'])
 @flask_login.login_required
-def friends_recomend():
+def friends_recommend():
 	uid=getUserIdFromEmail(flask_login.current_user.id)
-	email = request.form.get('email')
 	cursor.execute("SELECT friend_id from friends_list WHERE owner_id=%s", uid)
 	friends = cursor.fetchall()
-	#store friends of friends: 1 col for fof_id, 1 col for appear frequency
-	fof = [] 
+	# print("\nuser's friend:",friends,"\n")
+	#store friends of friends in fof: 1 col for fof_id, 1 col for appear frequency
+	fof = {}
+	for f in friends:
+		cursor.execute("SELECT friend_id from friends_list WHERE owner_id=%s", f)
+		f_friends = cursor.fetchall()
+		# print("\nfriends of", f,":",f_friends,"\n")
+		for ff in f_friends:
+			if ff not in friends:
+				cursor.execute("SELECT email from registered_users WHERE user_id=%s", ff)
+				email=cursor.fetchall()[0]
+				if email in fof:
+					fof[email] += 1
+				else:
+					fof[email] = 1
+	themes = [k for k in sorted(fof, key=fof.get, reverse=True)]
+	#only select 20 users as friend recommendations
+	if len(themes)>0:
+		return render_template('friends_recommend.html', message="See your friend recommendations.", recom=themes[:20])
+	else:
+		return render_template('friends_recommend.html', message="You need to add more friends to get recommendations!")
 
 
 
