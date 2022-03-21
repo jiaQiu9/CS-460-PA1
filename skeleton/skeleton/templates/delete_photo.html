@@ -9,8 +9,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css"
         integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
     <!-- name of the tab -->
-    
-    <title>See your photos</title>
+    <title>Delete photo</title>
 
 
 </head>
@@ -27,7 +26,7 @@
             <li class="nav-item active">
                 <a class="nav-link" href="/home">Home <span class="sr-only">(current)</span></a>
             </li>
-            
+
         </ul>
         <ul class="navbar-nav">
             <li class="nav-item">
@@ -42,26 +41,18 @@
 </nav>
 
 
-
 <body>
-
-    <h1> {{message}}</h1>
-    <p>Creation date: {{date[0][0]}}</p>
-    {% if result %}
-    <ul>
-        {% for photo in result%}
-
-        caption: {{photo[2]}} <br>
-        <img src='data:image/jpg;base64, {{ base64.b64encode(photo[1]).decode("ascii") }}' width="50%" height="50%" />
-
-        <a href= "{{ url_for('delete_photo', variable=photo[0]) }}">delete this photo</a> 
-        <br>
-        <br>
-            
-
-        {% endfor %}
-    </ul>
-    {% endif %}
+    <div class="cetner">
+        <h1>Are you sure you want to delete this photo?</h1>
+    </div>
+    <div class="inline">
+    <form method="POST" action="{{ url_for('delete_photo', variable = photo) }}" class="center">
+        <input type="hidden" name="pid" value="{{ photo }}" ><br/>
+        
+        <input type="submit" name="btn" value="confirm" /> 
+        <input type="submit" name="btn" value="cancel"/> 
+    </form>
+    </div>
 </body>
 
 
@@ -84,5 +75,4 @@
   
   padding: 10px;
 }
-p{text-align: center;}
 </style>

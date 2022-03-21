@@ -69,14 +69,15 @@
   {% endif %}
   <br>
   {% if albums %}
-  <h3> Album list:</h3>
+  <h3> Album list:</h3> 
+  <a class="nav-link" href="/manage_albums">Manage albums</a>
+
   <ul>
     {% for album in albums %}
     <li>  <a href= "{{ url_for('photos_in_album', variable=album[0]) }}">{{album[1]}}</a>  </li>
     {% endfor %}
   </ul>
-  {%else%}
-  <h3> You have no album!</h3>
+
   {% endif %}
   <br>
 

@@ -328,36 +328,72 @@ def create_album():
 	
 
 # see all photos in one album 
-@app.route('/<variable>/photo_in_album', methods=['GET'])
+@app.route('/<variable>/photo_in_album', methods=['GET','POST'])
 @flask_login.login_required
 def photos_in_album(variable):
-	themes = []
-	cursor=conn.cursor()
-	uid=getUserIdFromEmail(flask_login.current_user.id)
+	if request.method=="GET":
+		themes = []
+		cursor=conn.cursor()
+		uid=getUserIdFromEmail(flask_login.current_user.id)
 
-	cursor.execute("SELECT A.album_name FROM albums as A WHERE A.album_id=%s", variable)
-	Al_nam = cursor.fetchall()
+		cursor.execute("SELECT A.album_name FROM albums as A WHERE A.album_id=%s", variable)
+		Al_nam = cursor.fetchall()
+		cursor.execute("SELECT creation_date From Albums Where album_id=%s", variable)
+		date = cursor.fetchall()
 
-	cursor.execute("SELECT p.photo_id, p.imgdata, p.caption \
-					FROM Photos as p \
-					WHERE user_id=%s and p.album_id=%s",(uid, variable))
-	t = cursor.fetchall()
-	if len(t) != 0:
-		for i in range(len(t)):
-			themes.append({})
-			themes[i][0] = t[i][0] #photo_id
-			themes[i][1] = t[i][1] #img date
-			themes[i][2] = t[i][2] #caption
-		
+		cursor.execute("SELECT p.photo_id, p.imgdata, p.caption \
+						FROM Photos as p \
+						WHERE user_id=%s and p.album_id=%s",(uid, variable))
+		t = cursor.fetchall()
+		if len(t) != 0:
+			for i in range(len(t)):
+				themes.append({})
+				themes[i][0] = t[i][0] #photo_id
+				themes[i][1] = t[i][1] #img date
+				themes[i][2] = t[i][2] #caption
 			cursor.execute("SELECT * FROM Albums WHERE user_id=%s",uid)
 			all_albums=cursor.fetchall()
-		
-		return render_template('photos_in_album.html', user=uid, result=themes, albums=all_albums, message="See all your photos in {0}".format(Al_nam[0][0]), base64=base64)
-
+			return render_template('photos_in_album.html', user=uid, result=themes, albums=all_albums, date=date, message="See all your photos in {0}".format(Al_nam[0][0]), base64=base64)
+		else:
+			return render_template('photos_in_album.html', user=uid, result=themes, date=date, message="There's no photo in {0}".format(Al_nam[0][0]), base64=base64)
 	else:
-		return render_template('photos_in_album.html', user=uid, result=themes, message="There's no photo in {0}".format(Al_nam[0][0]), base64=base64)
+		return render_template('photos_in_album.html', user=uid, result=themes, date=date, message=None, base64=base64)
 
 
+@app.route("/<variable>/delete_photo", methods=['POST', 'GET'])
+def delete_photo(variable):
+	cursor=conn.cursor()
+	if request.method=='POST':
+		if request.form['btn']=="confirm":
+			cursor.execute("DELETE FROM Photos AS p WHERE p.photo_id=%s", variable)
+			conn.commit()
+			return render_template('hello.html', message="Deletion suceeded!")
+		elif request.form['btn']=="cancel":
+			return render_template('hello.html', message="Deletion canceled!")
+	return render_template('delete_photo.html', photo=variable, message="Welcome back")
+
+
+@app.route("/<variable>/delete_album", methods=['POST', 'GET'])
+def delete_album(variable):
+	cursor=conn.cursor()
+	if request.method=='POST':
+		if request.form['btn']=="confirm":
+			cursor.execute("DELETE FROM Albums AS a WHERE a.album_id=%s", variable)
+			conn.commit()
+			return render_template('hello.html', message="Deletion suceeded")
+		elif request.form['btn']=="cancel":
+			return render_template('hello.html', message="Deletion canceled")
+	return render_template('delete_album.html', album=variable, message="Welcome back")
+
+
+@app.route("/manage_albums", methods=['POST', 'GET'])
+@flask_login.login_required
+def manage_albums():
+	cursor=conn.cursor()
+	uid=getUserIdFromEmail(flask_login.current_user.id)
+	cursor.execute("SELECT DISTINCT A.album_id, A.album_name FROM albums as A, photos as P WHERE P.user_id=%s and P.album_id=A.album_id",(uid))
+	t = cursor.fetchall()
+	return render_template('manage_albums.html', albums=t)
 
 
 #begin photo uploading code
@@ -524,6 +560,8 @@ def top_tags():
 		return render_template('top_tags.html', list=top10)
 	
 	return render_template('top_tags.html')
+
+
 
 
 #default page
