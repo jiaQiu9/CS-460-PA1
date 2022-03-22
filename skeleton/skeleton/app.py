@@ -94,6 +94,7 @@ def login():
 			integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
 			<title>See your tags</title>
 		</head>
+
 		<nav class="navbar navbar-expand-md navbar-dark bg-dark">
 		<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav">
         <span class="navbar-toggler-icon"></span>
@@ -105,6 +106,7 @@ def login():
 					<a class="nav-link" href="/home">Home <span class="sr-only">(current)</span></a>
 				</li>
 			</ul>
+
 			<ul class="navbar-nav">
 				<li class="nav-item">
 					<a class="nav-link" href="/profile">My Profile</a>
@@ -124,6 +126,7 @@ def login():
 				<input type='password' name='password' id='password' placeholder='password'></input>
 				<input type='submit' name='submit'></input>
 			   </form></br>
+
 		   <style>
 		   body {background-color: #212121; color: White;}
 		   h1 {text-align: center;}
@@ -246,8 +249,8 @@ def protected():
 	all_albums=cursor.fetchall()
 	cursor.execute("SELECT contribution from registered_users WHERE user_id=%s",uid)
 	contrib=cursor.fetchall()
-
 	return render_template('hello.html', name=flask_login.current_user.id, score=contrib, albums=all_albums, photos=themes,base64=base64)
+
 
 
 
@@ -406,6 +409,33 @@ def public_tagged_photos(variable):
 	except:
 		return render_template('public_tagged_photos.html', tag=variable, message="Results not found. Try another tag.", result=themes, base64=base64)
 
+
+	try:
+		cursor.execute("SELECT p.imgdata, p.caption, a.album_name, r.email \
+						FROM Photos as p, Albums as a, Registered_users as r, Photo_has_tags as pht \
+						WHERE pht.tag_name=%s and pht.photo_id=p.photo_id and \
+						p.album_id=a.album_id and p.user_id=r.user_id",(variable))
+		t = cursor.fetchall()
+		num = len(t) - 1
+		if len(t) != 0:
+			for i in range(len(t)):
+				themes.append({})
+				themes[i][0] = t[num-i][0] #img data
+				themes[i][1] = t[num-i][1] #caption
+				themes[i][2] = t[num-i][2] #album_name
+				themes[i][3] = t[num-i][3] #user email
+			return render_template('public_tagged_photos.html', tag=variable, message="See all photos tagged {0}.".format(variable), result=themes, base64=base64)
+		else:
+			return render_template('public_tagged_photos.html', tag=variable, message="Results not found. Try another tag.", result=themes, base64=base64)
+	except:
+		return render_template('public_tagged_photos.html', tag=variable, message="Results not found. Try another tag.", result=themes, base64=base64)
+
+# see photos uploaded by the users that's tagged with the <tagName>
+@app.route('/search_tag', methods=['POST'])
+def search_tag():
+	#The request method is POST (page is recieving data)
+	tag = flask.request.form['search']
+	return public_tagged_photos(tag)
 
 # see photos uploaded by the users that's tagged with the <tagName>
 @app.route('/search_tag', methods=['POST'])
