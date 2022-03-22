@@ -16,6 +16,8 @@ from flask import Flask, Response, request, render_template, redirect, url_for
 from flaskext.mysql import MySQL
 import flask_login
 import datetime
+from datetime import datetime
+from datetime import date
 # for image uploading
 import os
 import base64
@@ -140,12 +142,23 @@ def register():
 @app.route("/register", methods=['POST'])
 def register_user():
     try:
+        # print("")
         fst_name = request.form.get('fst_name')
+        # print("fst name ",fst_name)
+    
         lst_name = request.form.get('lst_name')
+        # print("lst name ",lst_name)
+
         email = request.form.get('email')
-        date_of_birth = request.form.get('date_of_birth')
+        # print("email ", email)
+
+        date_of_birth = request.form.get('date')
+        # print('date of birth ',date_of_birth)
+
         hometown = request.form.get('hometown')
+        # print("hometwon ", hometown)
         gender = request.form.get('gender')
+        # print("gender ", gender)
         password = request.form.get('password')
 
     except:
@@ -259,7 +272,7 @@ def private_tagged_photos(variable):
     try:
         cursor.execute("SELECT p.photo_id, p.imgdata, p.caption, p.album_id FROM Photo_has_tags as pht, Photos as p WHERE pht.photo_id=p.photo_id and user_id=%s and tag_name=%s", (uid, variable))
     except:
-        print("\nwannna see progress")
+        # print("\nwannna see progress")
         cursor.execute("SELECT p.photo_id, p.imgdata, p.caption, p.album_id \
 						FROM Photos as p \
 						MINUS\
@@ -298,7 +311,7 @@ def create_album():
         album_name = request.form.get('album_name')
         cursor.execute("SELECT * FROM Albums WHERE album_name=%s", album_name)
         result = cursor.fetchall()
-        print(cursor.rowcount)
+        # print(cursor.rowcount)
         if (cursor.rowcount == 0):
             cursor.execute(
                 "INSERT INTO Albums (user_id, creation_date,album_name) VALUES (%s,%s,%s)", (uid, date, album_name))
@@ -346,7 +359,7 @@ def photos_in_album(variable):
 @app.route("/<variable>/disp_post_comt", methods=['GET', 'POST'])
 @flask_login.login_required
 def disp_post_comt(variable):
-    print("photo id in display post commment ", variable)
+    # print("photo id in display post commment ", variable)
     # themes=[]
     cursor = conn.cursor()
     uid = getUserIdFromEmail(flask_login.current_user.id)
@@ -358,10 +371,10 @@ def disp_post_comt(variable):
 
     cursor.execute("SELECT email FROM registered_users WHERE user_id=%s", uid)
     uemail = cursor.fetchall()
-    print("user id for display com ", uemail[0][0])
+    # print("user id for display com ", uemail[0][0])
     # print("photo comments data ",t)
-    print("user id for photo ", photo[0][0])
-    print("current uid ", uid)
+    # print("user id for photo ", photo[0][0])
+    # print("current uid ", uid)
     return render_template("imag_comt.html", cuid=uid, owner=photo[0][0], user_i=uemail[0][0], photo_id=variable, photo=photo, message="Insert comments for this image", base64=base64)
 
 
@@ -371,25 +384,25 @@ def insert_comment():
 
     if request.method == 'POST':
         comment_text = request.form.get('inscom')
-        print('inscom ', comment_text)
+        # print('inscom ', comment_text)
         user_id = request.form.get('user_id')
-        print('user id in inser comment', user_id)
+        # print('user id in inser comment', user_id)
         photo_id = request.form.get('photo_id')
-        print("photo id ", photo_id)
+        # print("photo id ", photo_id)
 
         ph_owner = request.form.get('owner')
-        print("photo owner :", ph_owner)
+        # print("photo owner :", ph_owner)
 
         cursor = conn.cursor()
-        date = datetime.date.today()
-        print("photo owner ", type(ph_owner), " ", ph_owner)
-        print("current user ", type(user_id), " ", user_id)
-        print("photo owner == user id ", ph_owner == user_id)
+        date_t = date.today()
+        # print("photo owner ", type(ph_owner), " ", ph_owner)
+        # print("current user ", type(user_id), " ", user_id)
+        # print("photo owner == user id ", ph_owner == user_id)
         if ph_owner == user_id:
             return render_template("home.html", message="you cannot comment your own photo")
         else:
             cursor.execute("INSERT INTO comments (user_id, photo_id, content, com_date) VALUES (%s,%s,%s,%s)",
-                           (user_id, photo_id, comment_text, date))
+                           (user_id, photo_id, comment_text, date_t))
             conn.commit()
             cursor.execute(
                 'UPDATE registered_users SET contribution=contribution+1 WHERE user_id=%s', user_id)
@@ -408,7 +421,7 @@ def like_photo():
         cursor.execute(
             "SELECT * FROM user_likes_photo WHERE user_id=%s AND photo_id=%s", (uid, int(photo_id)))
         check_likes = cursor.fetchall()
-        print("check_likes ", check_likes)
+        # print("check_likes ", check_likes)
         if len(check_likes) == 0:
             cursor.execute(
                 "INSERT INTO user_likes_photo (user_id, photo_id) VALUES (%s, %s)", (uid, int(photo_id)))
@@ -434,7 +447,7 @@ def search_comments():
 				 GROUP BY r.user_id \
 					 ORDER BY COUNT(c.content) DESC ", comment)
         lst_comment = cursor.fetchall()
-        print("lst of matched comments ", lst_comment)
+        # print("lst of matched comments ", lst_comment)
         return render_template('search_comment.html', list_of_comments=lst_comment)
     return render_template('search_comment.html')
 
@@ -462,7 +475,7 @@ def upload_file():
             "SELECT album_id FROM  Albums WHERE album_name=%s", (album_name))
         album_result = cursor.fetchall()
         if (cursor.rowcount != 0):
-            print(uid,  album_result,  caption)
+            # print(uid,  album_result,  caption)
             cursor.execute('''INSERT INTO Photos (user_id, album_id,imgdata, caption) VALUES (%s, %s, %s, %s )''',
                            (uid,  album_result, photo_data,  caption))
             cursor.execute(
@@ -471,7 +484,7 @@ def upload_file():
             cursor.execute(
                 "SELECT photo_id FROM photos ORDER BY photo_id DESC LIMIT 1")
             pid = cursor.fetchall()
-            print("\nwhen we upload the file, pid is:", pid, "\n")
+            # print("\nwhen we upload the file, pid is:", pid, "\n")
             return render_template('add_tags.html', photo=pid[0][0])
             # return render_template('hello.html', name=flask_login.current_user.id, message='Photo uploaded!', photos=getUsersPhotos(uid),base64=base64)
             # The method is GET so we return a  HTML form to upload the a photo.
@@ -490,35 +503,35 @@ def add_tags():
     cursor = conn.cursor()
     if request.method == "POST":
         tag = request.form.get('tag')
-        print("\nget tag:", tag)
+        # print("\nget tag:", tag)
 
         pid = request.form.get('pid')
-        print("\nget pid:", pid, "\n")
+        # print("\nget pid:", pid, "\n")
         try:
             cursor.execute(
                 "INSERT INTO tags (tag_name, tag_num) VALUES('{0}', 1)".format(tag))
             conn.commit()
-            print("first try")
+            # print("first try")
         except:
             sql = "UPDATE tags SET tag_num=(tag_num+1) WHERE tag_name=%s"
             cursor.execute(sql, (tag))
             conn.commit()
-            print("first except ")
+            # print("first except ")
         try:
             sql = "INSERT INTO Photo_has_tags (tag_name, photo_id) VALUES (%s, %s)"
             cursor.execute(sql, (tag, pid))
             conn.commit()
-            print("2nd t")
+            # print("2nd t")
         except:
             sql = "INSERT INTO Photo_has_tags (tag_name, photo_id) VALUES (%s, %s)"
             cursor.execute(sql, (tag, pid))
             conn.commit()
-            print("2nd t")
+            # print("2nd t")
 
         print("pid in post if ", pid)
         if request.form['btn'] == 'Add another tag':
             print(request.form['btn'])
-            print("pid add another tag ", pid)
+            # print("pid add another tag ", pid)
             return render_template('add_tags.html', photo=pid)
         elif request.form['btn'] == 'Add and finish':
             print(request.form['btn'])
@@ -553,7 +566,7 @@ def home_page():
         cursor.execute(
             "select c.content, r.email from comments as c, registered_users as r where c.photo_id=%s and c.user_id=r.user_id", t[i][0])
         current_comm = cursor.fetchall()
-        print("comment user and comment ", current_comm)
+        # print("comment user and comment ", current_comm)
         # for list of likes of each photo
         cursor.execute(
             "SELECT r.email FROM user_likes_photo as ulp, registered_users as r WHERE ulp.user_id=r.user_id AND photo_id=%s", t[i][0])
@@ -562,7 +575,7 @@ def home_page():
         themes[i][6] = current_comm
 
         themes[i][7] = lst_likes
-        print("lst likes ", lst_likes, " ", " photo_id: ", t[i][0])
+        # print("lst likes ", lst_likes, " ", " photo_id: ", t[i][0])
 
     return render_template('home.html', result=themes, base64=base64)
 
@@ -593,15 +606,15 @@ def add_friends():
     if request.method == 'POST':
         uid = getUserIdFromEmail(flask_login.current_user.id)
         email = request.form.get('email')
-        print("email ", email)
+        # print("email ", email)
         cursor = conn.cursor()
         cursor.execute(
             "SELECT user_id FROM registered_users WHERE email=%s", email)
         friend_id = cursor.fetchall()
         if friend_id != ():
-            print("friend id", friend_id[0][0])
+            # print("friend id", friend_id[0][0])
             if friend_id[0][0] != uid:
-                print("friend list ", friend_id, uid)
+                # print("friend list ", friend_id, uid)
                 friendid = friend_id[0][0]
                 cursor.execute(
                     '''INSERT INTO friends_list (owner_id, friend_id) VALUES (%s, %s )''', (uid, friendid))
