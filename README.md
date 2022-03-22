@@ -8,11 +8,11 @@ In this project, you will design, implement and document a database system for a
 Before running skeleton, turn on mysql server by type the command in terminal.
 
 (For mac)
-To start: 'sudo /usr/local/mysql/support-files/mysql.server start' or 'brew services start mysql' (if installed from Homebrew)
+	To start: 'sudo /usr/local/mysql/support-files/mysql.server start' or 'brew services start mysql' (if installed from Homebrew)
 
-To stop:  'sudo /usr/local/mysql/support-files/mysql.server stop' or 'brew services stop mysql'
+	To stop:  'sudo /usr/local/mysql/support-files/mysql.server stop' or 'brew services stop mysql'
 
-To restart:  'sudo /usr/local/mysql/support-files/mysql.server restart' or 'brew services restart mysql'
+	To restart:  'sudo /usr/local/mysql/support-files/mysql.server restart' or 'brew services restart mysql'
 
 (windows)
 	To start: 'mysqld' or  'net start MySQL80' MySQL80 is the registered  service name (you can find it in services panel)
