@@ -253,6 +253,72 @@ def protected():
 
 
 
+@app.route('/photos_recommend')
+@flask_login.login_required
+def photos_recommend():
+	cursor=conn.cursor()
+	uid=getUserIdFromEmail(flask_login.current_user.id)
+	tags5 = top5_prefer()
+	
+	if len(tags5) != 0:
+		pids_by_score = {}
+		for tag in tags5:
+			t = tag[0]
+			cursor.execute("SELECT p.photo_id FROM Photo_has_tags as pht, Photos as p \
+							WHERE p.photo_id=pht.photo_id and p.user_id<>%s and tag_name=%s", (uid,t))
+			photos = cursor.fetchall()
+			for p in photos:
+				# add photos to pids_by_score. key is photo_id, value is the recomm_score of the photo.
+				if p not in pids_by_score:
+					score = recomm_score(p)
+					pids_by_score[p] = score
+		# get pids sorted by their recomm_score
+		pids = [k for k in sorted(pids_by_score, key=pids_by_score.get, reverse=True)]
+		candidates = []
+		for pid in pids:
+			cursor.execute("SELECT p.photo_id, r.email, a.album_name, p.caption, p.imgdata \
+							FROM Photos as p, Photo_has_tags as pht, Albums as a, Registered_users as r \
+							WHERE p.photo_id=pht.photo_id AND p.album_id=a.album_id AND p.user_id=r.user_id AND pht.photo_id=%s", (pid))
+			recommend = cursor.fetchall()[0]
+
+			rid = recommend[0]
+			cursor.execute("SELECT tag_name FROM Photo_has_tags WHERE photo_id=%s",rid)
+			rtags = cursor.fetchall()[0]
+			recommend = (*recommend, rtags) 
+
+			candidates.append(recommend)
+		return render_template('photos_recommend.html', photos=candidates, message="See photo recommendations!", base64=base64)
+	else:
+		return render_template('photos_recommend.html', message="You need to upload more photos to enable use to recommend.")
+
+
+
+# recomm_score of a photo to the current user
+def recomm_score(pid):
+	score = 0
+	tags5 = top5_prefer()
+
+	cursor=conn.cursor()
+	cursor.execute("SELECT tag_name FROM Photo_has_tags WHERE photo_id=%s", pid)
+	tags = cursor.fetchall()
+	for t in tags:
+		if t in tags5:
+			score +=1
+	return score
+
+# top5 preferred tags by the current user
+def top5_prefer():
+	cursor=conn.cursor()
+	uid=getUserIdFromEmail(flask_login.current_user.id)
+	cursor.execute("SELECT DISTINCT pht.tag_name, count(pht.photo_id) FROM Photo_has_tags as pht, tags as t, Photos as p \
+					WHERE t.tag_name=pht.tag_name and pht.photo_id=p.photo_id and p.user_id=%s \
+					GROUP BY pht.tag_name ORDER BY count(pht.photo_id) DESC",(uid))
+
+	return cursor.fetchall()
+
+
+
+
 # see all tags that the user has
 @app.route('/user_tags', methods=['GET'])
 @flask_login.login_required
@@ -366,7 +432,7 @@ def create_album():
 			cursor.execute("SELECT contribution from registered_users WHERE user_id=%s",uid)
 			contrib=cursor.fetchall()
 
-			return render_template('hello.html', name=flask_login.current_user.id, message=" Album create")
+			return render_template('hello.html', name=flask_login.current_user.id, score=contrib, message=" Album create")
 		else:
 			return render_template('album_create.html',message="The album name is already used by someone, enter another one.")
 	return render_template('album_create.html')	

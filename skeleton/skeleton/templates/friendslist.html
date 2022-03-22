@@ -49,8 +49,8 @@
 <body>
     <p>{{message}}</p>
     <h1>Friends list of {{name}} </h1>
-    <br> 
-    <a class="nav-link" href="{{ url_for('friends_recommend') }}">Need friends recommendation?</a>
+    <p><a class="nav-link" href="{{ url_for('friends_recommend') }}">Need friend recommendations?</a></p>
+    <br>
     {% if list %}
     <ol>
         {% for friend in list %}

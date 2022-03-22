@@ -57,8 +57,11 @@
     <div id="content" class="center">
         <form method="post" action="{{ url_for('create_album') }}" class="center">
             <label for="email">Enter the new album name:</label>
-            <input type="text" name="album_name" /><br />
+            <input type="text" required="true" name="album_name" /><br />
             <input type="submit" class="center"/>
+        </form>
+        <form id="cancel" style="text-align:center;" id="cancel" action="{{ url_for('hello') }}">
+            <input type="submit" value="Cancel" />
         </form>
     </div>
 </body>

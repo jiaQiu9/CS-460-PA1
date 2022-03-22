@@ -53,15 +53,22 @@
         <br>
         <p>{{message}}</p>
         <div id="wrap">
-            <form method="POST" id="block" enctype="multipart/form-data" action="/upload" class="center" style="display: inline-block; text-align:left;">
+            <form method="POST" id="block" enctype="multipart/form-data" action="/upload" style="display: inline-block; text-align:left;">
             <br>
                 <lablel for="album">Enter album name:</lablel> 
                 <input type="text" name="album" required='true'><br> 
+                <br>
                 <label for="photo">Select photo:</label>
                 <input type="file" name="photo" required='true' /><br />
+                <br>
                 <label for="caption">Please caption:</label>
                 <input type="text" name="caption" required='true' /><br />
+                <br>
                 <input type="submit" value="Upload" />
+            </form>
+            
+            <form id="cancel" style="text-align:left;" id="cancel" action="{{ url_for('hello') }}">
+                <input type="submit" value="Cancel" />
             </form>
         </div>
     </body>
