@@ -10,7 +10,7 @@
         integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
     <!-- name of the tab -->
     
-    <title>Create an account!</title>
+    <title>Create an album!</title>
 
 
 </head>
@@ -33,12 +33,6 @@
             <li class="nav-item">
                 <a class="nav-link" href="/profile">My Profile</a>
             </li>
-            <li class="nav-item">
-                <a class="nav-link" href="/friendslist">Friends List</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="/upload">Upload Photo</a>
-            </li>
 
             <li class="nav-item">
                 <a class="nav-link" href="/logout">Logout</a>
@@ -53,7 +47,7 @@
 <body>
 
     {% if message  %}
-    <h1>{{message}}!</h1>
+    <p>{{message}}</p>
     {% endif %}
 
 
@@ -63,8 +57,11 @@
     <div id="content" class="center">
         <form method="post" action="{{ url_for('create_album') }}" class="center">
             <label for="email">Enter the new album name:</label>
-            <input type="text" name="album_name" /><br />
+            <input type="text" required="true" name="album_name" /><br />
             <input type="submit" class="center"/>
+        </form>
+        <form id="cancel" style="text-align:center;" id="cancel" action="{{ url_for('hello') }}">
+            <input type="submit" value="Cancel" />
         </form>
     </div>
 </body>
@@ -74,6 +71,7 @@
 
 <!-- dark mode for the web page -->
 <style>
+
     body {
         /* making the background to the specific color in hex */
         background-color: #212121;
@@ -89,4 +87,8 @@
   
   padding: 10px;
 }
+p{
+  text-align: center;
+    }
+
 </style>

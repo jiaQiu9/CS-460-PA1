@@ -8,9 +8,8 @@
     <!-- Bootstrap CSS, make the page look better and formated -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css"
         integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-    <!-- name of the tab -->
     
-    <title>Add Friends!</title>
+    <title>Add tags!</title>
 
 
 </head>
@@ -40,6 +39,7 @@
 
 
 <body>
+    <p>{{message}}</p>
     <div class="cetner">
         <h1>Add tag to your photo</h1>
     </div>
@@ -51,12 +51,14 @@
             <input type="text" name="tag" required='true' /><br />
             
             <div class="inline">
-                <input type="submit" name="btn" value="Add another tag" /> 
+                <input type="submit" name="btn" value="Add another tag" required='true'/> 
                 <input type="submit" name="btn" value="Add and finish" required='true'/> 
               </div>
         </form>
+        <br>
+        <br>
         <form action="{{ url_for('hello') }}" class="center">
-            <input type="submit" value="Finished" />
+            <input type="submit" value="I'm done adding tags. Return to profile." />
         </form>
     </div>
 </body>
@@ -81,4 +83,7 @@
   
   padding: 10px;
 }
+p {
+  text-align: center;
+    }
 </style>

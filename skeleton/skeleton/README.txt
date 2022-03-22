@@ -1,3 +1,13 @@
+Before running skeleton, turn on mysql server by type the command in terminal.
+(For mac)
+	To start: 'sudo /usr/local/mysql/support-files/mysql.server start' or 'brew services start mysql' (if installed from Homebrew)
+	To stop:  'sudo /usr/local/mysql/support-files/mysql.server stop' or 'brew services stop mysql'
+	To restart:  'sudo /usr/local/mysql/support-files/mysql.server restart' or 'brew services restart mysql'
+(windows)
+	To start: 'mysqld' or  'net start MySQL80' MySQL80 is the registered  service name (you can find it in services panel)
+	To stop: 'mysqladmin -u root -p shutdown'
+	Can also control this by MySQL Notifier
+
 To get the skeleton running, open a terminal and do the following:
 	1. enter the skeleton folder 'cd path/to/skeleton'
 	2. install all necessary packages 'pip install -r requirements.txt' (or use pip3)

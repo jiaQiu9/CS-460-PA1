@@ -1,3 +1,4 @@
+
 <!-- author ben lawson balawson@bu.edu -->
 
 <head>
@@ -57,12 +58,10 @@
 
                 <li>Comments: "{{ comments[0] }}     "      - by user: {{ comments[1] }}</li> <br>
             {% endfor %}
-        {% else %}
-            <h5> No matched comments in the system.</h5>
         {% endif %}
     </ul>
     
-    <h4> Add comments: </h4>
+    <h4> Search comments: </h4>
     <!-- the function to add comments -->
     <div>
         <form method="post" action="{{ url_for('search_comments') }}" class="center">
@@ -97,4 +96,5 @@
   
   padding: 10px;
 }
+
 </style>
