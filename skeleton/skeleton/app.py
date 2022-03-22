@@ -15,6 +15,8 @@ from flask import Flask, Response, request, render_template, redirect, url_for
 from flaskext.mysql import MySQL
 import flask_login
 import datetime
+from datetime import datetime
+from datetime import date
 #for image uploading
 import os, base64
 
@@ -287,10 +289,12 @@ def photos_recommend():
 			recommend = (*recommend, rtags) 
 
 			candidates.append(recommend)
-		return render_template('photos_recommend.html', photos=candidates, message="See photo recommendations!", base64=base64)
+		if len(candidates) != 0:
+			return render_template('photos_recommend.html', photos=candidates, message="See photo recommendations!", base64=base64)
+		else:
+			return render_template('photos_recommend.html', message="You need to upload more photos to enable use to recommend.")
 	else:
 		return render_template('photos_recommend.html', message="You need to upload more photos to enable use to recommend.")
-
 
 
 # recomm_score of a photo to the current user
@@ -424,7 +428,6 @@ def create_album():
 		date = datetime.date.today()
 		album_name=request.form.get('album_name')
 		cursor.execute("SELECT * FROM Albums WHERE album_name=%s",(album_name))
-		result=cursor.fetchall()
 		if (cursor.rowcount == 0):
 			cursor.execute("INSERT INTO Albums (user_id, creation_date,album_name) VALUES (%s,%s,%s)",(uid,date, album_name))
 			conn.commit()
@@ -486,11 +489,24 @@ def delete_photo(variable):
 				conn.commit()
 			except: # picture is untagged
 				pass
+
+			# update contribution - because we'll delete all commends under this photo
+			cursor.execute("SELECT user_id from comments WHERE photo_id=%s", variable)
+			users = cursor.fetchall()
+			for user in users:
+				print("\nthis user's contribution should -1:", user)
+				cursor.execute("UPDATE registered_users SET contribution=contribution-1 WHERE user_id=%s", user)
+				conn.commit()
+			# update table comments - delete all comments under this photos from the system database
+			cursor.execute("DELETE FROM Comments WHERE photo_id=%s", variable)
+			conn.commit()
+
 			# update table "photos"
 			cursor.execute("DELETE FROM Photos AS p WHERE p.photo_id=%s", variable)
-			# update contribution of the user
+			# update contribution of the current user
 			cursor.execute("UPDATE registered_users SET contribution=contribution-1 WHERE user_id=%s", uid)
 			conn.commit()
+
 			return render_template('hello.html', message="Deletion suceeded")
 			
 		elif request.form['btn']=="cancel":
@@ -515,6 +531,18 @@ def delete_album(variable):
 				# update tag number
 				cursor.execute("UPDATE tags SET tag_num=tag_num-1 WHERE tag_name =%s",tagName)
 				conn.commit()
+
+				# update contribution - because we'll delete all commends under this photo
+				cursor.execute("SELECT user_id from comments WHERE photo_id=%s", pid)
+				users = cursor.fetchall()
+				for user in users:
+					print("\nthis user's contribution should -1:", user)
+					cursor.execute("UPDATE registered_users SET contribution=contribution-1 WHERE user_id=%s", user)
+					conn.commit()
+				# update table comments - delete all comments under this photos from the system database
+				cursor.execute("DELETE FROM Comments WHERE photo_id=%s", variable)
+				conn.commit()
+
 				# update table "photos"
 				cursor.execute("DELETE FROM Photos AS p WHERE p.photo_id=%s", pid)
 				conn.commit()
@@ -645,12 +673,23 @@ def all_photos():
 		themes[i][5] = cursor.fetchall()
 
 		#print out comments under each photo
-		cursor.execute("select c.content, r.email from comments as c, registered_users as r where c.photo_id=%s and c.user_id",t[num-i][0])
-		current_comm=cursor.fetchall()
-		if current_comm != ():
-			themes[i][6]=current_comm
-		else:
-			themes[i][6]=current_comm
+		# cursor.execute("select c.content, r.email from comments as c, registered_users as r where c.photo_id=%s and c.user_id",t[num-i][0])
+		# current_comm=cursor.fetchall()
+		# if current_comm != ():
+		# 	themes[i][6]=current_comm
+		# else:
+		# 	themes[i][6]=current_comm
+
+		cursor.execute(
+            "select c.content, r.email from comments as c, registered_users as r where c.photo_id=%s and c.user_id=r.user_id", t[num-i][0])
+		current_comm = cursor.fetchall()
+		cursor.execute(
+			"SELECT r.email FROM user_likes_photo as ulp, registered_users as r WHERE ulp.user_id=r.user_id AND photo_id=%s", t[num-i][0])
+		lst_likes = cursor.fetchall()
+
+		themes[i][6] = current_comm
+		themes[i][7] = lst_likes
+		themes[i][8] = len(lst_likes)
 
 	return render_template('all_photos.html', result = themes, base64=base64)
 
@@ -775,6 +814,91 @@ def friends_recommend():
 		return render_template('friends_recommend.html', message="See your friend recommendations.", recom=themes[:20])
 	else:
 		return render_template('friends_recommend.html', message="You need to add more friends to get recommendations!")
+
+
+
+
+
+
+# display comments of the image and be able to insert comments
+@app.route("/<variable>/disp_post_comt", methods=['GET', 'POST'])
+@flask_login.login_required
+def disp_post_comt(variable):
+    cursor = conn.cursor()
+    uid = getUserIdFromEmail(flask_login.current_user.id)
+    cursor.execute(
+        "SELECT user_id,imgdata FROM photos WHERE photo_id=%s", variable)
+    photo = cursor.fetchall()
+
+    cursor.execute("SELECT email FROM registered_users WHERE user_id=%s", uid)
+    uemail = cursor.fetchall()
+    return render_template("imag_comt.html", cuid=uid, owner=photo[0][0], user_i=uemail[0][0], photo_id=variable, photo=photo, message="Insert comments for this image", base64=base64)
+
+
+# inserting comment to photo
+@app.route('/insert_comment', methods=['GET', "POST"])
+def insert_comment():
+    if request.method == 'POST':
+        comment_text = request.form.get('inscom')
+        user_id = request.form.get('user_id')
+        photo_id = request.form.get('photo_id')
+
+        ph_owner = request.form.get('owner')
+
+        cursor = conn.cursor()
+        date_t = date.today()
+        if ph_owner == user_id:
+            return render_template("all_photos.html", message="you cannot comment your own photo")
+        else:
+            cursor.execute("INSERT INTO comments (user_id, photo_id, content, com_date) VALUES (%s,%s,%s,%s)",
+                           (user_id, photo_id, comment_text, date_t))
+            conn.commit()
+            cursor.execute(
+                'UPDATE registered_users SET contribution=contribution+1 WHERE user_id=%s', user_id)
+            conn.commit()
+            return render_template("home.html", message="Comment was added")
+
+
+
+@app.route('/likes', methods=['GET', 'POST'])
+def like_photo():
+	if request.method == "POST":
+		photo_id = request.form.get('photo_id')
+		uid = getUserIdFromEmail(flask_login.current_user.id)
+		cursor = conn.cursor()
+		cursor.execute("SELECT * FROM user_likes_photo WHERE user_id=%s AND photo_id=%s", (uid, int(photo_id)))
+		check_likes = cursor.fetchall()
+		# user cannot like a photo that they have already liked
+		if len(check_likes) == 0:
+			cursor.execute("INSERT INTO user_likes_photo (user_id, photo_id) VALUES (%s, %s)", (uid, int(photo_id)))
+			conn.commit()
+			cursor.execute('UPDATE registered_users SET contribution=contribution+1 WHERE user_id=%s', uid)
+			conn.commit()
+			
+			return render_template("all_photos.html", message="The photo has been liked.")
+
+		else:
+			return render_template('all_photos.html', message="You have already liked this photo.")
+
+
+@app.route('/search', methods=['POST', 'GET'])
+def search_comments():
+	if request.method == "POST":
+		cursor = conn.cursor()
+		comment = request.form.get('inscom')
+		cursor.execute("SELECT c.content, r.email FROM comments as c, registered_users as r WHERE \
+						c.user_id=r.user_id AND c.content=%s\
+						GROUP BY r.user_id \
+						ORDER BY COUNT(c.content) DESC ", comment)
+		lst_comment = cursor.fetchall()
+		if len(lst_comment) != 0:
+			return render_template('search_comment.html', list_of_comments=lst_comment)
+		else:
+			return render_template('search_comment.html', message="No comments in the system.")
+	return render_template('search_comment.html')
+
+
+
 
 
 

@@ -65,6 +65,8 @@
     </div>
   </nav>
   <br>
+  <p>{{message}}</p>
+
   <h1> See the latest photos from all users </h1>
   <br>
 
@@ -83,11 +85,30 @@
       {%endif%}<br>
 
       Caption: {{photo[4]}} <br>
-      <img src='data:image/jpg;base64, {{ base64.b64encode(photo[3]).decode("ascii") }}' width="35%" height="35%" />
+
+      <!-- image as hyperlink -->
+      <a href="{{ url_for('disp_post_comt', variable=photo[0]) }}"> <img src='data:image/jpg;base64, {{ base64.b64encode(photo[3]).decode("ascii") }}' width="50%" height="50%" />
+      </a >
+      <!-- <img src='data:image/jpg;base64, {{ base64.b64encode(photo[3]).decode("ascii") }}' width="35%" height="35%" /> -->
       <br>
-      {% for comments in photo[6] %}
+
+      <div>
+        <h4>Comments:</h4>
+        {% for comments in photo[6] %}
+          {{comments[1]}}: {{comments[0]}}<br>
+        {% endfor %}
+        <br>
+
+        <h4> Likes:</h4> 
+        <p> (Number of likes: {{ photo[8] }}) </p>
+        {% for likes in photo[7] %}
+          {{ likes[0] }} <br>
+        {% endfor %}
+      </div>
+
+      <!-- {% for comments in photo[6] %}
         {{comments[0]}} - user: {{[comments[1]]}}
-      {% endfor %}
+      {% endfor %} -->
       <br>
       <br>
 
