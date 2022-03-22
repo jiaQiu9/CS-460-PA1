@@ -10,7 +10,7 @@
         integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
     <!-- name of the tab -->
     
-    <title>Freinds_list</title>
+    <title>See your photos</title>
 
 
 </head>
@@ -34,6 +34,9 @@
                 <a class="nav-link" href="/profile">My Profile</a>
             </li>
             <li class="nav-item">
+                <a class="nav-link" href="/upload">Upload Photo</a>
+              </li>
+            <li class="nav-item">
                 <a class="nav-link" href="/logout">Logout</a>
             </li>
 
@@ -46,13 +49,15 @@
 <body>
 
     <h1> {{message}}</h1>
-    <br> 
+    <p>Creation date: {{date[0][0]}}</p>
     {% if result %}
     <ul>
         {% for photo in result%}
 
         caption: {{photo[2]}} <br>
         <img src='data:image/jpg;base64, {{ base64.b64encode(photo[1]).decode("ascii") }}' width="50%" height="50%" />
+
+        <a href= "{{ url_for('delete_photo', variable=photo[0]) }}">delete this photo</a> 
         <br>
         <br>
             
@@ -82,4 +87,5 @@
   
   padding: 10px;
 }
+p{text-align: center;}
 </style>

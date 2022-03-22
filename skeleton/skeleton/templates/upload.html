@@ -10,7 +10,7 @@
         integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
     <!-- name of the tab -->
     
-    <title>Add Friends!</title>
+    <title>Upload a photo!</title>
 
 
 </head>
@@ -50,15 +50,27 @@
         <div class="title">
             <h1>Upload a photo to Photoshare</h1>
         </div>
-            <form method="POST" enctype="multipart/form-data" action="/upload" class="center">
-                <lablel for="album">Enter album name:</lablel>
+        <br>
+        <p>{{message}}</p>
+        <div id="wrap">
+            <form method="POST" id="block" enctype="multipart/form-data" action="/upload" style="display: inline-block; text-align:left;">
+            <br>
+                <lablel for="album">Enter album name:</lablel> 
                 <input type="text" name="album" required='true'><br> 
+                <br>
                 <label for="photo">Select photo:</label>
                 <input type="file" name="photo" required='true' /><br />
+                <br>
                 <label for="caption">Please caption:</label>
                 <input type="text" name="caption" required='true' /><br />
+                <br>
                 <input type="submit" value="Upload" />
             </form>
+            
+            <form id="cancel" style="text-align:left;" id="cancel" action="{{ url_for('hello') }}">
+                <input type="submit" value="Cancel" />
+            </form>
+        </div>
     </body>
 
 
@@ -70,15 +82,17 @@
         /* making the background to the specific color in hex */
         background-color: #212121;
         color: White;
+    }
+    h1 {text-align: center;}.center {margin: auto;width: 50%;padding: 10px;}
+    #wrap {
+    float: left;
+    position: relative;
+    left: 58%;}
 
-    }
-    h1 {
-  text-align: center;
-    }
-    .center {
-  margin: auto;
-  width: 50%;
-  
-  padding: 10px;
-}
+    #block {
+    float: left;
+    position: relative;
+    left: -50%;}
+
+    p{text-align: center;}
 </style>

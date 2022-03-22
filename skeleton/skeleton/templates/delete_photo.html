@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css"
         integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
     <!-- name of the tab -->
-    <title>Add Friends!</title>
+    <title>Delete photo</title>
 
 
 </head>
@@ -43,19 +43,16 @@
 
 <body>
     <div class="cetner">
-        <p>{{message}}</p>
-        <h1>Enter your friend's email below</h1>
+        <h1>Are you sure you want to delete this photo?</h1>
     </div>
-    <div id="content" class="center">
-        <form method="post" action="{{ url_for('add_friends') }}" class="center">
-            <label for="email">Friend's email:</label>
-            <input type="email" name="email" required="true"/><br />
-            <input type="submit" class="center"/>
-        </form>
+    <div class="inline">
+    <form method="POST" action="{{ url_for('delete_photo', variable = photo) }}" class="center">
+        <input type="hidden" name="pid" value="{{ photo }}" ><br/>
+        
+        <input type="submit" name="btn" value="confirm" /> 
+        <input type="submit" name="btn" value="cancel"/> 
+    </form>
     </div>
-
-    <p><a class="nav-link" href="{{ url_for('friends_recommend') }}">Need friends recommendation?</a></p>
-
 </body>
 
 
@@ -78,5 +75,4 @@
   
   padding: 10px;
 }
-p{text-align:center;}
 </style>

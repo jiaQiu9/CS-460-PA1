@@ -9,7 +9,8 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css"
         integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
     <!-- name of the tab -->
-    <title>Add Friends!</title>
+    
+    <title>Photoshare</title>
 
 
 </head>
@@ -24,9 +25,9 @@
         <!-- navigation bar options  -->
         <ul class="navbar-nav mr-auto">
             <li class="nav-item active">
-                <a class="nav-link" href="/home">Home <span class="sr-only">(current)</span></a>
+                <a class="nav-link" href="/home"> Home <span class="sr-only">(current)</span></a>
             </li>
-
+            
         </ul>
         <ul class="navbar-nav">
             <li class="nav-item">
@@ -41,21 +42,33 @@
 </nav>
 
 
+
 <body>
-    <div class="cetner">
-        <p>{{message}}</p>
-        <h1>Enter your friend's email below</h1>
-    </div>
-    <div id="content" class="center">
-        <form method="post" action="{{ url_for('add_friends') }}" class="center">
-            <label for="email">Friend's email:</label>
-            <input type="email" name="email" required="true"/><br />
-            <input type="submit" class="center"/>
-        </form>
-    </div>
 
-    <p><a class="nav-link" href="{{ url_for('friends_recommend') }}">Need friends recommendation?</a></p>
+    <br>
+    <h1> {{message}}</h1>
+    <br> 
 
+    <form method="post" action="{{ url_for('search_tag') }}" style="text-align:center;">
+        <label for="search">Search another tag:</label>
+        <input type="text" name="search" required="true"/>
+        <input type="submit" name="btn" value="photos by date"/>
+    </form>
+    <br>
+
+    {% if result %}
+    <ul>
+        {% for photo in result%}
+
+        Album: {{photo[2]}} <br>
+        User: {{photo[3]}} <br>
+        {{photo[1]}} <br>
+        <img src='data:image/jpg;base64, {{ base64.b64encode(photo[0]).decode("ascii") }}' width="50%" height="50%" />
+        <br>
+        <br>
+        {% endfor %}
+    </ul>
+    {% endif %}
 </body>
 
 
@@ -78,5 +91,4 @@
   
   padding: 10px;
 }
-p{text-align:center;}
 </style>
