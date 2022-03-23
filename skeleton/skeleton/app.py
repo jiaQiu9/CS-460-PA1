@@ -237,7 +237,7 @@ def protected():
 
 		cursor.execute("SELECT album_name FROM Albums WHERE album_id=%s",t[i][2])
 		album_name=cursor.fetchall()
-		themes[i][5]= album_name[0][0]
+		themes[i][5]= album_name[0][0] #album_name
 		
 		cursor.execute("SELECT pht.tag_name FROM Photo_has_tags as pht, photos AS p \
 						WHERE pht.photo_id=p.photo_id and p.user_id=%s and p.photo_id=%s", (uid, t[i][0]))
