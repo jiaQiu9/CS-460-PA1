@@ -36,28 +36,7 @@
           <a class="nav-link" href="/home">Home <span class="sr-only">(current)</span></a>
         </li>
 
-      </ul>
-      <ul class="navbar-nav">
-
-        <li class="nav-item">
-          <a class="nav-link" href="/profile">My Profile</a>
-        </li>
-
-        <li class="nav-item">
-          <a class="nav-link" href="/friendslist">Friends List</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="/upload">Upload Photo</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="/album_create">Create_album</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="/add_friends">Add Friends</a>
-        </li>
-
-
-      </ul>
+      
     </div>
     <div>
 
@@ -70,7 +49,7 @@
         {% if result %}
             <h2>Albums:</h2><br>
             {% for i in result%}
-                name: <a href="{{ url_for('photos_in_album_u', variable=i[2]) }}">{{ i[1] }}</a> - by {{ i[0] }}
+                <a href="{{ url_for('photos_in_album_u', variable=i[2]) }}">{{ i[1] }}</a> - by {{ i[0] }}<br>
             {% endfor %}
 
         {% endif %}

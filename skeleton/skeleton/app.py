@@ -710,7 +710,7 @@ def all_albums():
 			
 			themes[i][0] = t[num-i][0] #user email
 			themes[i][1] = t[num-i][1] #album name
-			themes[i][2] = t[num-1][2] #album id
+			themes[i][2] = t[num-i][2] #album id
 		return render_template('all_albums.html', result = themes, base64=base64)
 	else:
 		return render_template('all_albums.html', message="There are no albums in the system.",base64=base64)
