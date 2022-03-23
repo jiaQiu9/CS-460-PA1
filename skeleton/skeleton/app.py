@@ -171,25 +171,45 @@ def register():
 
 @app.route("/register", methods=['POST'])
 def register_user():
-	try:
-		email=request.form.get('email')
-		password=request.form.get('password')
-	except:
-		print("couldn't find all tokens") #this prints to shell, end users will not see this (all print statements go to shell)
-		return flask.redirect(flask.url_for('register'))
-	cursor = conn.cursor()
-	test = isEmailUnique(email)
-	if test:
-		print(cursor.execute("INSERT INTO Registered_Users (email, passcode) VALUES ('{0}', '{1}')".format(email, password)))
-		conn.commit()
-		#log user in
-		user = User()
-		user.id = email
-		flask_login.login_user(user)
-		return render_template('hello.html', score=0, name=email, message='Account Created!')
-	else:
-		print("couldn't find all tokens")
-		return flask.redirect(flask.url_for('register'))
+    try:
+        # print("")
+        fst_name = request.form.get('fst_name')
+        # print("fst name ",fst_name)
+
+        lst_name = request.form.get('lst_name')
+        # print("lst name ",lst_name)
+
+        email = request.form.get('email')
+        # print("email ", email)
+
+        date_of_birth = request.form.get('date')
+        # print('date of birth ',date_of_birth)
+
+        hometown = request.form.get('hometown')
+        # print("hometwon ", hometown)
+        gender = request.form.get('gender')
+        # print("gender ", gender)
+        password = request.form.get('password')
+
+    except:
+        # this prints to shell, end users will not see this (all print statements go to shell)
+        print("couldn't find all tokens")
+        return flask.redirect(flask.url_for('register'))
+    cursor = conn.cursor()
+    test = isEmailUnique(email)
+    if test:
+        print(cursor.execute("INSERT INTO Registered_Users (fst_name, lst_name, email, date_of_birth, hometown, gender,passcode, contribution) VALUES ('{0}', '{1}', '{2}', '{3}', '{4}' ,'{5}', '{6}' , 0)"
+                             .format(fst_name, lst_name, email, date_of_birth, hometown, gender, password)))
+        conn.commit()
+        # log user in
+        user = User()
+        user.id = email
+        flask_login.login_user(user)
+        return render_template('hello.html', name=email, message='Account Created!')
+    else:
+        print("couldn't find all tokens")
+        return flask.redirect(flask.url_for('register'))
+
 
 @app.route('/noregister')
 def noregister_user():
