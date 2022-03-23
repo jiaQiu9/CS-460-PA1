@@ -406,6 +406,7 @@ def public_tagged_photos(variable):
 
 
 
+
 def photos_by_tags(tags, recomm): 
 	# recomm is bool, indicating whether this function is used for recommendation,
 	# where photos of current user should be exclude or not
@@ -468,7 +469,7 @@ def create_album():
 	if request.method == 'POST':
 		cursor=conn.cursor()
 		uid = getUserIdFromEmail(flask_login.current_user.id)
-		date = datetime.date.today()
+		date = datetime.today()
 		album_name=request.form.get('album_name')
 		cursor.execute("SELECT * FROM Albums WHERE album_name=%s",(album_name))
 		if (cursor.rowcount == 0):
@@ -735,6 +736,61 @@ def all_photos():
 		themes[i][8] = len(lst_likes)
 
 	return render_template('all_photos.html', result = themes, base64=base64)
+
+
+# all albums 
+@app.route("/all_albums", methods=['GET'])
+def all_albums():
+	cursor = conn.cursor()
+	cursor.execute("SELECT  R.email, A.album_name, A.album_id\
+					FROM  Albums as A, Registered_Users as R\
+					WHERE A.user_id=R.user_id")
+	t = cursor.fetchall()
+	if len(t)!=0:
+		num = len(t)-1
+		themes = []
+		for i in range(len(t)):
+			themes.append({})
+			
+			themes[i][0] = t[num-i][0] #user email
+			themes[i][1] = t[num-i][1] #album name
+			themes[i][2] = t[num-i][2] #album id
+		return render_template('all_albums.html', result = themes, base64=base64)
+	else:
+		return render_template('all_albums.html', message="There are no albums in the system.",base64=base64)
+
+
+
+# see all photos in one album 
+@app.route('/<variable>/photo_in_album_u', methods=['GET','POST'])
+@flask_login.login_required
+def photos_in_album_u(variable):
+	if request.method=="GET":
+		themes = []
+		cursor=conn.cursor()
+	
+		cursor.execute("SELECT p.photo_id, p.imgdata, p.caption \
+						FROM Photos as p, albums as a \
+						WHERE p.album_id=a.album_id and p.album_id=%s",( variable))
+		t = cursor.fetchall()
+		cursor.execute("select album_name from albums where album_id=%s",variable)
+		album_name=cursor.fetchall()
+		if len(t) != 0:
+			for i in range(len(t)):
+				themes.append({})
+				themes[i][0] = t[i][0] #photo_id
+				themes[i][1] = t[i][1] #img date
+				themes[i][2] = t[i][2] #caption
+			
+			return render_template('album_has_photos.html' ,result=themes,  message="The photos for {0}".format(album_name[0][0]), base64=base64)
+		else:
+			return render_template('album_has_photos.html',  message="There's no photo in {0}".format(album_name[0][0]), base64=base64)
+	else:
+		return render_template('album_has_photos.html', message=None, base64=base64)
+
+
+
+
 
 
 @app.route("/friendslist", methods=['POST','GET'])
