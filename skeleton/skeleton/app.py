@@ -254,7 +254,6 @@ def protected():
 
 
 
-
 @app.route('/photos_recommend')
 @flask_login.login_required
 def photos_recommend():
@@ -263,32 +262,7 @@ def photos_recommend():
 	tags5 = top5_prefer()
 	
 	if len(tags5) != 0:
-		pids_by_score = {}
-		for tag in tags5:
-			t = tag[0]
-			cursor.execute("SELECT p.photo_id FROM Photo_has_tags as pht, Photos as p \
-							WHERE p.photo_id=pht.photo_id and p.user_id<>%s and tag_name=%s", (uid,t))
-			photos = cursor.fetchall()
-			for p in photos:
-				# add photos to pids_by_score. key is photo_id, value is the recomm_score of the photo.
-				if p not in pids_by_score:
-					score = recomm_score(p)
-					pids_by_score[p] = score
-		# get pids sorted by their recomm_score
-		pids = [k for k in sorted(pids_by_score, key=pids_by_score.get, reverse=True)]
-		candidates = []
-		for pid in pids:
-			cursor.execute("SELECT p.photo_id, r.email, a.album_name, p.caption, p.imgdata \
-							FROM Photos as p, Photo_has_tags as pht, Albums as a, Registered_users as r \
-							WHERE p.photo_id=pht.photo_id AND p.album_id=a.album_id AND p.user_id=r.user_id AND pht.photo_id=%s", (pid))
-			recommend = cursor.fetchall()[0]
-
-			rid = recommend[0]
-			cursor.execute("SELECT tag_name FROM Photo_has_tags WHERE photo_id=%s",rid)
-			rtags = cursor.fetchall()[0]
-			recommend = (*recommend, rtags) 
-
-			candidates.append(recommend)
+		candidates = photos_by_tags(tags5, True)
 		if len(candidates) != 0:
 			return render_template('photos_recommend.html', photos=candidates, message="See photo recommendations!", base64=base64)
 		else:
@@ -298,15 +272,13 @@ def photos_recommend():
 
 
 # recomm_score of a photo to the current user
-def recomm_score(pid):
+def recomm_score(pid, tags):
 	score = 0
-	tags5 = top5_prefer()
-
 	cursor=conn.cursor()
-	cursor.execute("SELECT tag_name FROM Photo_has_tags WHERE photo_id=%s", pid)
-	tags = cursor.fetchall()
-	for t in tags:
-		if t in tags5:
+	cursor.execute("SELECT tag_name FROM Photo_has_tags WHERE photo_id=%s", (pid))
+	output = cursor.fetchall()
+	for t in output:
+		if t in tags:
 			score +=1
 	return score
 
@@ -319,6 +291,46 @@ def top5_prefer():
 					GROUP BY pht.tag_name ORDER BY count(pht.photo_id) DESC",(uid))
 
 	return cursor.fetchall()
+
+
+def photos_by_tags(tags, recomm): 
+	# recomm is bool, indicating whether this function is used for recommendation,
+	# where photos of current user should be exclude or not
+	uid=getUserIdFromEmail(flask_login.current_user.id)
+	pids_by_score = {}
+	for tag in tags:
+		t = tag[0]
+		photos = []
+		if recomm:
+			cursor.execute("SELECT p.photo_id FROM Photo_has_tags as pht, Photos as p \
+							WHERE p.photo_id=pht.photo_id and p.user_id<>%s and tag_name=%s", (uid,t))
+		else:
+			print("we have tag:", tag,"\n")
+			cursor.execute("SELECT photo_id FROM Photo_has_tags WHERE tag_name=%s", t)
+		photos.append(cursor.fetchall())
+		print("show photos by the tage", photos, "\n")
+		for p in photos:
+			# add photos to pids_by_score. key is photo_id, value is the recomm_score of the photo.
+			if p not in pids_by_score:
+				score = recomm_score(p, tags)
+				pids_by_score[p] = score
+	# get pids sorted by their recomm_score
+	pids = [k for k in sorted(pids_by_score, key=pids_by_score.get, reverse=True)]
+	candidates = []
+	for pid in pids:
+		cursor.execute("SELECT p.photo_id, r.email, a.album_name, p.caption, p.imgdata \
+						FROM Photos as p, Photo_has_tags as pht, Albums as a, Registered_users as r \
+						WHERE p.photo_id=pht.photo_id AND p.album_id=a.album_id AND p.user_id=r.user_id AND pht.photo_id=%s", (pid))
+		recommend = cursor.fetchall()[0]
+
+		rid = recommend[0]
+		cursor.execute("SELECT tag_name FROM Photo_has_tags WHERE photo_id=%s",rid)
+		rtags = cursor.fetchall()[0]
+		recommend = (*recommend, rtags) 
+
+		candidates.append(recommend)
+	return candidates
+
 
 
 
@@ -386,56 +398,48 @@ def private_tagged_photos(variable):
 # see photos uploaded by the users that's tagged with the <tagName>
 @app.route('/<variable>/public_tagged_photos', methods=['GET','POST'])
 def public_tagged_photos(variable):
-	themes = []
-	cursor=conn.cursor()
-
-	try:
-		cursor.execute("SELECT p.imgdata, p.caption, a.album_name, r.email \
-						FROM Photos as p, Albums as a, Registered_users as r, Photo_has_tags as pht \
-						WHERE pht.tag_name=%s and pht.photo_id=p.photo_id and \
-						p.album_id=a.album_id and p.user_id=r.user_id",(variable))
-		t = cursor.fetchall()
-		num = len(t) - 1
-		if len(t) != 0:
-			for i in range(len(t)):
-				themes.append({})
-				themes[i][0] = t[num-i][0] #img data
-				themes[i][1] = t[num-i][1] #caption
-				themes[i][2] = t[num-i][2] #album_name
-				themes[i][3] = t[num-i][3] #user email
-			return render_template('public_tagged_photos.html', tag=variable, message="See all photos tagged {0}.".format(variable), result=themes, base64=base64)
-		else:
-			return render_template('public_tagged_photos.html', tag=variable, message="Results not found. Try another tag.", result=themes, base64=base64)
-	except:
-		return render_template('public_tagged_photos.html', tag=variable, message="Results not found. Try another tag.", result=themes, base64=base64)
+	themes = photos_by_tags(variable, False)
+	print("show num of photos", len(themes), "\n")
+	# themes = []
+	# cursor=conn.cursor()
+	# try:
+	# 	cursor.execute("SELECT p.imgdata, p.caption, a.album_name, r.email \
+	# 					FROM Photos as p, Albums as a, Registered_users as r, Photo_has_tags as pht \
+	# 					WHERE pht.tag_name=%s and pht.photo_id=p.photo_id and \
+	# 					p.album_id=a.album_id and p.user_id=r.user_id",(variable))
+	# 	t = cursor.fetchall()
+	# 	num = len(t) - 1
+	# 	if len(t) != 0:
+	# 		for i in range(len(t)):
+	# 			themes.append({})
+	# 			themes[i][0] = t[num-i][0] #img data
+	# 			themes[i][1] = t[num-i][1] #caption
+	# 			themes[i][2] = t[num-i][2] #album_name
+	# 			themes[i][3] = t[num-i][3] #user email
+	if len(themes) != 0:
+		return render_template('public_tagged_photos.html', message="See all photos tagged {0}.".format(variable), result=themes, base64=base64)
+	else:
+		return render_template('public_tagged_photos.html', message="Results not found. Try another tag.", base64=base64)
+	# except:
+	# 	return render_template('public_tagged_photos.html', message="Results not found. Try another tag.", result=themes, base64=base64)
 
 		
-	try:
-		cursor.execute("SELECT p.imgdata, p.caption, a.album_name, r.email \
-						FROM Photos as p, Albums as a, Registered_users as r, Photo_has_tags as pht \
-						WHERE pht.tag_name=%s and pht.photo_id=p.photo_id and \
-						p.album_id=a.album_id and p.user_id=r.user_id",(variable))
-		t = cursor.fetchall()
-		num = len(t) - 1
-		if len(t) != 0:
-			for i in range(len(t)):
-				themes.append({})
-				themes[i][0] = t[num-i][0] #img data
-				themes[i][1] = t[num-i][1] #caption
-				themes[i][2] = t[num-i][2] #album_name
-				themes[i][3] = t[num-i][3] #user email
-			return render_template('public_tagged_photos.html', tag=variable, message="See all photos tagged {0}.".format(variable), result=themes, base64=base64)
-		else:
-			return render_template('public_tagged_photos.html', tag=variable, message="Results not found. Try another tag.", result=themes, base64=base64)
-	except:
-		return render_template('public_tagged_photos.html', tag=variable, message="Results not found. Try another tag.", result=themes, base64=base64)
-
 # see photos uploaded by the users that's tagged with the <tagName>
 @app.route('/search_tag', methods=['POST'])
-def search_tag():
+def search_tags():
 	#The request method is POST (page is recieving data)
-	tag = flask.request.form['search']
-	return public_tagged_photos(tag)
+	text = flask.request.form['search']
+	text = text.split(", ")
+	tags = []
+	for t in text:
+		cursor.execute("SELECT tag_name FROM tags where tag_name=%s", t)
+		tags.append(cursor.fetchall())
+	print("\nShow user input:", text,"\n")
+	return public_tagged_photos(text)
+
+
+
+
 
 
 
