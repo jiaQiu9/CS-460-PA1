@@ -385,12 +385,24 @@ def private_tagged_photos(variable):
 # see photos uploaded by the users that's tagged with the <tagName>
 @app.route('/<variable>/public_tagged_photos', methods=['GET','POST'])
 def public_tagged_photos(variable):
+	print("\nthis is our variable:", variable, "\n")
 	themes = photos_by_tags(variable, False)
-	print("show num of photos", len(themes), "\n")
-	if len(themes) != 0:
-		return render_template('public_tagged_photos.html', message="See all photos tagged {0}.".format(variable), result=themes, base64=base64)
+	display_tags = []
+	if isinstance(variable, str):
+		cursor.execute("SELECT tag_name from tags WHERE tag_name=%s",variable)
+		v=cursor.fetchall()
+		cursor.execute("SELECT tag_name from tags WHERE tag_name=%s",v)
+		vv = cursor.fetchall()
+		display_tags = variable
+		themes = photos_by_tags([vv], False)
 	else:
-		return render_template('public_tagged_photos.html', message="Results not found. Try another tag.", base64=base64)
+		for v in variable:
+			display_tags.append(v[0][0])
+	if len(themes) != 0:
+		return render_template('public_tagged_photos.html', message="See all photos tagged {0}".format(display_tags), result=themes, base64=base64)
+	else:
+		return render_template('public_tagged_photos.html', message="Results not found. Try other tags.", base64=base64)
+
 
 
 
@@ -406,11 +418,10 @@ def photos_by_tags(tags, recomm):
 			cursor.execute("SELECT p.photo_id FROM Photo_has_tags as pht, Photos as p \
 							WHERE p.photo_id=pht.photo_id and p.user_id<>%s and tag_name=%s", (uid,t))
 		else:
-			print("we have tag:", tag,"\n")
 			cursor.execute("SELECT photo_id FROM Photo_has_tags WHERE tag_name=%s", t)
 		photos.append(cursor.fetchall())
-		print("show photos by the tage", photos, "\n")
-		for p in photos:
+		# print("show photos by the tage", photos, "\n")
+		for p in photos[0]:
 			# add photos to pids_by_score. key is photo_id, value is the recomm_score of the photo.
 			if p not in pids_by_score:
 				score = recomm_score(p, tags)
@@ -426,9 +437,8 @@ def photos_by_tags(tags, recomm):
 
 		rid = recommend[0]
 		cursor.execute("SELECT tag_name FROM Photo_has_tags WHERE photo_id=%s",rid)
-		rtags = cursor.fetchall()[0]
-		recommend = (*recommend, rtags) 
-
+		rtags = cursor.fetchall()
+		recommend = (*recommend, rtags) # recommend[5] is a list of tags
 		candidates.append(recommend)
 	return candidates
 
@@ -441,8 +451,13 @@ def photos_by_tags(tags, recomm):
 @app.route('/search_tag', methods=['POST'])
 def search_tag():
 	#The request method is POST (page is recieving data)
-	tag = flask.request.form['search']
-	return public_tagged_photos(tag)
+	tags = flask.request.form['search']
+	text = tags.split(", ")
+	output = []
+	for t in text:
+		cursor.execute("SELECT tag_name FROM tags where tag_name=%s", t)
+		output.append(cursor.fetchall())
+	return public_tagged_photos(output)
 
 
 
