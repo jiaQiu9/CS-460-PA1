@@ -4,6 +4,8 @@
 <b>Purpose of the project</b> <br>
 In this project, you will design, implement and document a database system for a web-based photo sharing application. You also need to provide the web-based interface to the database. The final system should be functional and will be similar to Flickr!
 
+# Setup instructions
+MUST open sql workbench and perform data import on database.sql
 
 Before running skeleton, turn on mysql server by type the command in terminal.
 
